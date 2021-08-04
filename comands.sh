@@ -204,3 +204,5 @@ sudo systemctl start  docker
 sudo usermod -aG docker $USER
 
 vagrant@node01:~$ docker container run --rm -it hello-world
+
+# test
