@@ -805,3 +805,52 @@ Removing intermediate container d5f0e5dd951b
  ---> a520e15c2329
 Successfully built a520e15c2329
 Successfully tagged webserver:latest
+
+# enviar a imagem para docker hub
+
+vagrant@node01:~/dockerfiles/webserver$ docker login -u orbite82
+
+vagrant@node01:~/dockerfiles/webserver$ docker image ls
+REPOSITORY       TAG       IMAGE ID       CREATED          SIZE
+echo-container   latest    a520e15c2329   14 minutes ago   294MB
+webserver        latest    a520e15c2329   14 minutes ago   294MB
+debian           latest    0980b84bde89   2 weeks ago      114MB
+
+vagrant@node01:~/dockerfiles/webserver$ docker image tag echo-container orbite82/echo-container:dca
+
+vagrant@node01:~/dockerfiles/webserver$ docker image ls
+REPOSITORY                TAG       IMAGE ID       CREATED          SIZE
+echo-container            latest    a520e15c2329   16 minutes ago   294MB
+webserver                 latest    a520e15c2329   16 minutes ago   294MB
+orbite82/echo-container   dca       a520e15c2329   16 minutes ago   294MB
+debian                    latest    0980b84bde89   2 weeks ago      114MB
+
+# enviando para docker hub
+
+vagrant@node01:~/dockerfiles/webserver$ docker push orbite82/echo-container:dca
+The push refers to repository [docker.io/orbite82/echo-container]
+c533c9048d64: Pushed 
+afa3e488a0ee: Mounted from library/debian 
+dca: digest: sha256:2374ba8b3593ef672a26747885d303bd184bfd7abf20b65fd26d2f1d30eeca16 size: 741
+
+# baixar a imagem do docker hub ex:
+
+docker image pull caiodelgadonew/echo-container:dca
+
+vagrant@node01:~/dockerfiles/webserver$ docker image pull caiodelgadonew/echo-container:dca
+dca: Pulling from caiodelgadonew/echo-container
+5843afab3874: Pull complete 
+Digest: sha256:8da4fcf28e37e2d45be9e0eed35b02c712522e35700d966fa77f5454cb36b0a9
+Status: Downloaded newer image for caiodelgadonew/echo-container:dca
+docker.io/caiodelgadonew/echo-container:dca
+
+vagrant@node01:~/dockerfiles/webserver$ docker image ls
+REPOSITORY                      TAG       IMAGE ID       CREATED          SIZE
+echo-container                  latest    a520e15c2329   19 minutes ago   294MB
+webserver                       latest    a520e15c2329   19 minutes ago   294MB
+orbite82/echo-container         dca       a520e15c2329   19 minutes ago   294MB
+debian                          latest    0980b84bde89   2 weeks ago      114MB
+caiodelgadonew/echo-container   dca       b2b066932d4b   6 weeks ago      5.6MB
+
+vagrant@node01:~/dockerfiles/webserver$ docker logout
+Removing login credentials for https://index.docker.io/v1/
