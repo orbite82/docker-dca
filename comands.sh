@@ -734,6 +734,8 @@ mkdir webservers
 
 vagrant@node01:~/dockerfiles/webserver$ vim Dockerfile
 
+#pior pratica
+
 FROM    debian
 RUN     apt-get update
 RUN     apt-get install wget git apache2 -yq
@@ -744,6 +746,8 @@ $ mkdir dockerfiles
 $ mkdir  ~/dockerfiles/webserver
 $ cd ~/dockerfiles/webserver
 $ vim Dockerfile
+
+# melhor pratica
 
 FROM    debian
 RUN     apt-get update; \
