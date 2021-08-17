@@ -131,7 +131,7 @@ vagrant@node01:~$
 
 https://docs.docker.com/engine/install/ubuntu/
 
-sudo apt-get update
+sudo apt-get update -y
 
 sudo apt-get install apt-transport-https ca-certificates curl gnupg lsb-release -y
 
@@ -146,7 +146,7 @@ ls /etc/apt/sources.list.d/
 
 cat /etc/apt/sources.list.d/docker.list
 
-sudo apt-get update
+sudo apt-get update -y
 
 sudo apt-get install docker-ce docker-ce-cli containerd.io -y
 
@@ -168,6 +168,12 @@ sudo usermod -aG docker $USER
 getent group docker
 
 docker system info
+
+sudo groupadd docker
+
+sudo usermod -aG docker $USER
+
+newgrp docker
 
 # Install command completion
 
@@ -2878,3 +2884,9 @@ total 4
 vagrant@node01:~/backup$ docker container exec webserver2 ls -l /webdata
 total 4
 drwxrwxr-x 7 1000 1000 4096 Aug 17 18:31 dockerfiles
+
+==============================================================================
+
+# Aula 5: Docker DCA 05 - Volume Plugins
+
+https://www.youtube.com/watch?v=GUtIVR0OOv4&t=19s
