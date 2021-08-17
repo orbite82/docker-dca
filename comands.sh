@@ -2344,3 +2344,537 @@ vagrant@node01:~$ cd backup/
 vagrant@node01:~/backup$ 
 
 pwd --> PRINT WORKING DIRECTORY
+
+vagrant@node01:~$ docker container exec volumetest ls /webdata
+dockerfiles
+
+vagrant@node01:~/backup$ docker container run --rm --volumes-from webserver -v $(pwd):/backup alpine tar cvf backup.tar /webdata
+tar: removing leading '/' from member names
+webdata/
+
+vagrant@node01:~/backup$ docker container run --rm --volumes-from webserver -v $(pwd):/backup alpine tar cvf /backup/backup.tar /webdata
+
+vagrant@node01:~/backup$ ls -lha
+total 18M
+drwxrwxr-x 2 vagrant vagrant 4.0K Aug 17 18:22 .
+drwxr-xr-x 8 vagrant vagrant 4.0K Aug 17 15:57 ..
+-rw-r--r-- 1 root    root     18M Aug 17 18:22 backup.tar
+
+vagrant@node01:~/backup$ tar -tvf backup.tar
+
+vagrant@node01:~/backup$ tar -tvf backup.tar
+drwxr-xr-x root/root         0 2021-08-17 15:35 webdata/
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/
+drwxrwxr-x 1000/1000         0 2021-08-10 16:49 webdata/dockerfiles/multistage/
+-rw-rw-r-- 1000/1000       719 2021-08-10 15:26 webdata/dockerfiles/multistage/Gopkg.toml
+-rw-rw-r-- 1000/1000      1067 2021-08-10 15:26 webdata/dockerfiles/multistage/LICENSE
+-rw-rw-r-- 1000/1000      1709 2021-08-10 15:26 webdata/dockerfiles/multistage/app.go
+-rw-rw-r-- 1000/1000       106 2021-08-10 16:49 webdata/dockerfiles/multistage/Dockerfile
+-rw-rw-r-- 1000/1000       234 2021-08-10 15:39 webdata/dockerfiles/multistage/Dockerfile1
+-rw-rw-r-- 1000/1000       510 2021-08-10 15:26 webdata/dockerfiles/multistage/Gopkg.lock
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/vendor/
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/vendor/golang.org/
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/vendor/golang.org/x/
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/vendor/golang.org/x/net/
+-rw-rw-r-- 1000/1000      1479 2021-08-10 15:26 webdata/dockerfiles/multistage/vendor/golang.org/x/net/LICENSE
+-rw-rw-r-- 1000/1000       173 2021-08-10 15:26 webdata/dockerfiles/multistage/vendor/golang.org/x/net/AUTHORS
+-rw-rw-r-- 1000/1000      1303 2021-08-10 15:26 webdata/dockerfiles/multistage/vendor/golang.org/x/net/PATENTS
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/vendor/golang.org/x/net/html/
+-rw-rw-r-- 1000/1000      3415 2021-08-10 15:26 webdata/dockerfiles/multistage/vendor/golang.org/x/net/html/doc.go
+-rw-rw-r-- 1000/1000      6913 2021-08-10 15:26 webdata/dockerfiles/multistage/vendor/golang.org/x/net/html/foreign.go
+-rw-rw-r-- 1000/1000    114594 2021-08-10 15:26 webdata/dockerfiles/multistage/vendor/golang.org/x/net/html/entity.go
+-rw-rw-r-- 1000/1000     30558 2021-08-10 15:26 webdata/dockerfiles/multistage/vendor/golang.org/x/net/html/token.go
+-rw-rw-r-- 1000/1000     57896 2021-08-10 15:26 webdata/dockerfiles/multistage/vendor/golang.org/x/net/html/parse.go
+-rw-rw-r-- 1000/1000      6053 2021-08-10 15:26 webdata/dockerfiles/multistage/vendor/golang.org/x/net/html/escape.go
+-rw-rw-r-- 1000/1000      7062 2021-08-10 15:26 webdata/dockerfiles/multistage/vendor/golang.org/x/net/html/render.go
+-rw-rw-r-- 1000/1000      2618 2021-08-10 15:26 webdata/dockerfiles/multistage/vendor/golang.org/x/net/html/const.go
+-rw-rw-r-- 1000/1000      4925 2021-08-10 15:26 webdata/dockerfiles/multistage/vendor/golang.org/x/net/html/doctype.go
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/vendor/golang.org/x/net/html/atom/
+-rw-rw-r-- 1000/1000     11995 2021-08-10 15:26 webdata/dockerfiles/multistage/vendor/golang.org/x/net/html/atom/gen.go
+-rw-rw-r-- 1000/1000      2321 2021-08-10 15:26 webdata/dockerfiles/multistage/vendor/golang.org/x/net/html/atom/atom.go
+-rw-rw-r-- 1000/1000     27822 2021-08-10 15:26 webdata/dockerfiles/multistage/vendor/golang.org/x/net/html/atom/table.go
+-rw-rw-r-- 1000/1000      5355 2021-08-10 15:26 webdata/dockerfiles/multistage/vendor/golang.org/x/net/html/node.go
+-rw-rw-r-- 1000/1000       170 2021-08-10 15:26 webdata/dockerfiles/multistage/vendor/golang.org/x/net/CONTRIBUTORS
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/branches/
+-rw-rw-r-- 1000/1000        23 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/HEAD
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/refs/
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/refs/remotes/
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/refs/remotes/origin/
+-rw-rw-r-- 1000/1000        32 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/refs/remotes/origin/HEAD
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/refs/tags/
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/refs/heads/
+-rw-rw-r-- 1000/1000        41 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/refs/heads/master
+-rw-rw-r-- 1000/1000       114 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/packed-refs
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/c0/
+-r--r--r-- 1000/1000       163 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/c0/a2f2b1f37cce4a19012243802e3768dcb0dd38
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/19/
+-r--r--r-- 1000/1000       110 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/19/a30cce68f5824f49b6037404c6422be1831767
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/e7/
+-r--r--r-- 1000/1000       190 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/e7/e168db78bb35e64bcd933f4592174e25a45999
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/93/
+-r--r--r-- 1000/1000       345 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/93/ce04d50131dbbf7fd86da6c6ad7447ca39b9be
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/6b/
+-r--r--r-- 1000/1000        34 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/6b/f4d21621593804e225541bcedec694c1dfae42
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/01/
+-r--r--r-- 1000/1000      2373 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/01/477a96397c971333726e0f248d54ae05206cdb
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/0a/
+-r--r--r-- 1000/1000       246 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/0a/24abe460f5b52dedcbcaff6d3d40573e056965
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/35/
+-r--r--r-- 1000/1000       189 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/35/79b9ef8e54e57112e0be54f1ad19afab4b9cdd
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/d8/
+-r--r--r-- 1000/1000      2502 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/d8/561396200ea6412a5717e0a3bfbdd85ac79ed0
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/pack/
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/be/
+-r--r--r-- 1000/1000       246 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/be/0d97374ca3dd0043bb20cc081817eba1d41443
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/73/
+-r--r--r-- 1000/1000       674 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/73/3099041f84fa1e58611ab2e11af51c1f26d1d2
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/a1/
+-r--r--r-- 1000/1000       189 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/a1/0e89c5502c3ded53098fb809d6065ec0f17e10
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/cd/
+-r--r--r-- 1000/1000      1150 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/cd/0a8ac15451b5d585d965bc178d0b80effb682d
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/84/
+-r--r--r-- 1000/1000       179 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/84/624ac0e887294a56d877fc6dfcdf4c37ef31f4
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/5d/
+-r--r--r-- 1000/1000      4920 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/5d/052781bceaf8504923cff6da7d4a5f22044169
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/a0/
+-r--r--r-- 1000/1000       212 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/a0/fb183ea284a2a89c41b2e32ee1588c41baaf0a
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/6a/
+-r--r--r-- 1000/1000       811 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/6a/66aea5eafe0ca6a688840c47219556c552488e
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/00/
+-r--r--r-- 1000/1000        45 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/00/f076fd995ff6ac201603ec2566d2d3660a2b70
+-r--r--r-- 1000/1000        30 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/00/5fdfc32095b5010256b0a55dbef56319144130
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/bf/
+-r--r--r-- 1000/1000       114 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/bf/b0846e4faf5c1d85ba5312b66f5164c8a61cb0
+-r--r--r-- 1000/1000       123 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/bf/fc2e7adc8f8fd0544cc054b4d83686a0aa0678
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/1c/
+-r--r--r-- 1000/1000       147 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/1c/4577e9680611383f46044d17fa343a96997c3c
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/b0/
+-r--r--r-- 1000/1000       189 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/b0/c6da3506c02da17f3faee4aa179a4bda578a88
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/af/
+-r--r--r-- 1000/1000       179 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/af/22ff0709ad869b4733f0465a2397e6afbf5d88
+-r--r--r-- 1000/1000       246 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/af/f03ad8b8b1a5c0d0fc3396ded2026216091a90
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/07/
+-r--r--r-- 1000/1000       360 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/07/daa1c26e2d891a82dc75caf5bc5d21a1733790
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/e5/
+-r--r--r-- 1000/1000       246 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/e5/ad6c7947c58991f7e7eb927388d7caf78c2f97
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/43/
+-r--r--r-- 1000/1000       189 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/43/4f7780ecea83a0290f52fb0c15899b48446989
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/15/
+-r--r--r-- 1000/1000       150 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/15/167cd746c560e5b3d3b233a169aa64d3e9101e
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/b6/
+-r--r--r-- 1000/1000     20513 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/b6/28880a014d865f22c5b2c15a2aaf63aa340ed7
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/99/
+-r--r--r-- 1000/1000     15440 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/99/2cff2a33a5252af208ad046cd137088eccfdc0
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/8c/
+-r--r--r-- 1000/1000        31 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/8c/cfff23cbf5c0b0ec740c53d8dd0d86bcd92530
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/7a/
+-r--r--r-- 1000/1000       167 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/7a/6ab85bfdd2b3f4d2c4d33ae4efa20d217be7a4
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/f6/
+-r--r--r-- 1000/1000        54 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/f6/2ec9f873684cad6f060d762faf7377fea62c9f
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/d3/
+-r--r--r-- 1000/1000      2570 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/d3/4564f49dd1e65a0a38f0bc3718c586e6ec6c9b
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/45/
+-r--r--r-- 1000/1000       571 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/45/a974800c7b92a60a5892252a2148aabee4a2d0
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/03/
+-r--r--r-- 1000/1000       793 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/03/2948f050758b0c69faa29d9bde90a1f4ed08ce
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/60/
+-r--r--r-- 1000/1000       253 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/60/fe828ecc99db2ef55f97445541ad0ca3862d0c
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/ae/
+-r--r--r-- 1000/1000     10009 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/ae/0d1b05cd38af37415f14c557819251528f6f4e
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/2a/
+-r--r--r-- 1000/1000      9236 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/2a/938864cb9d3e88b3259c4856412517a39dce5f
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/c6/
+-r--r--r-- 1000/1000       547 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/c6/77f182431125b837a84666ac5b27f630557ec4
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/9a/
+-r--r--r-- 1000/1000       277 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/9a/54bdd36a1212a6f0eecc64696ea0d356377f4c
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/91/
+-r--r--r-- 1000/1000       240 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/91/88c2380a6b212a802da13829f2993346195573
+-r--r--r-- 1000/1000       158 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/91/e52dae77bf18dba10c73e94f2d601b2006bcf2
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/db/
+-r--r--r-- 1000/1000       118 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/db/39781f14cdff3d94375995074cf8106f6fbf1d
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/info/
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/bc/
+-r--r--r-- 1000/1000       405 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/bc/550069bd9ba7fe6a1ab4edb5976ae43ecea44f
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/08/
+-r--r--r-- 1000/1000       451 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/08/35236dc6ecf997deee5cc81c0370713226a9a5
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/95/
+-r--r--r-- 1000/1000       178 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/95/c4cf5914e2e55b90bbba3303ff9bf2742db8ad
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/fc/
+-r--r--r-- 1000/1000        43 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/fc/732a7acdd1be8fce7252996ceecc8c5a06712b
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/20/
+-r--r--r-- 1000/1000       709 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/20/e3067c97ebb9f113bd248c0772b655f50b40a5
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/88/
+-r--r--r-- 1000/1000       124 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/88/d4e62667f9125ff0e3c90bd1752f1c903c071f
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/b4/
+-r--r--r-- 1000/1000       217 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/b4/73fdd13216a46feb97c92659164381d963722e
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/64/
+-r--r--r-- 1000/1000       144 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/64/20cce7bf2341d8d8837fe8b36a4d1300539d1d
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/36/
+-r--r--r-- 1000/1000        52 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/36/0d6787c6c081c445dcb40b71add3300d922c7e
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/a3/
+-r--r--r-- 1000/1000      1006 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/a3/a918f0b381d2663037373b487e1d7f776c5c35
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/8d/
+-r--r--r-- 1000/1000       654 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/8d/01a431501a7cea65b6fb632c0bd257f9509e65
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/63/
+-r--r--r-- 1000/1000      2131 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/63/3ee15dc55b53ebbabfc73870c8e66a1c1b0e29
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/5a/
+-r--r--r-- 1000/1000       794 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/5a/4d75f8a43c169f2e4eaf5cb82c7a9f0adb163f
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/82/
+-r--r--r-- 1000/1000      1739 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/82/2ed42a04c1c52fe0d8855c0ae50708be80b1f6
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/ec/
+-r--r--r-- 1000/1000       120 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/ec/76ee0f4da2f1e0ac67969a067a42c1fe2c7f00
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/3b/
+-r--r--r-- 1000/1000       350 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/3b/125600c757b016c6458ec09cbdd32b2778253e
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/c4/
+-r--r--r-- 1000/1000      1802 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/c4/84e5a94fbf0a38b9c1789356f9f152ccaec4d2
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/68/
+-r--r--r-- 1000/1000       340 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/objects/68/af7c2dace75818468e29302642ecd9a942370a
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/hooks/
+-rwxrwxr-x 1000/1000      3610 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/hooks/update.sample
+-rwxrwxr-x 1000/1000       544 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/hooks/pre-receive.sample
+-rwxrwxr-x 1000/1000       424 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/hooks/pre-applypatch.sample
+-rwxrwxr-x 1000/1000      1348 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/hooks/pre-push.sample
+-rwxrwxr-x 1000/1000      3327 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/hooks/fsmonitor-watchman.sample
+-rwxrwxr-x 1000/1000       896 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/hooks/commit-msg.sample
+-rwxrwxr-x 1000/1000       189 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/hooks/post-update.sample
+-rwxrwxr-x 1000/1000      1492 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/hooks/prepare-commit-msg.sample
+-rwxrwxr-x 1000/1000      4898 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/hooks/pre-rebase.sample
+-rwxrwxr-x 1000/1000       478 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/hooks/applypatch-msg.sample
+-rwxrwxr-x 1000/1000      1642 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/hooks/pre-commit.sample
+-rw-rw-r-- 1000/1000      2865 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/index
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/logs/
+-rw-rw-r-- 1000/1000       201 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/logs/HEAD
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/logs/refs/
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/logs/refs/remotes/
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/logs/refs/remotes/origin/
+-rw-rw-r-- 1000/1000       201 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/logs/refs/remotes/origin/HEAD
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/logs/refs/heads/
+-rw-rw-r-- 1000/1000       201 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/logs/refs/heads/master
+-rw-rw-r-- 1000/1000        73 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/description
+-rw-rw-r-- 1000/1000       270 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/config
+drwxrwxr-x 1000/1000         0 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/info/
+-rw-rw-r-- 1000/1000       240 2021-08-10 15:26 webdata/dockerfiles/multistage/.git/info/exclude
+-rwxrwxr-x 1000/1000       382 2021-08-10 15:26 webdata/dockerfiles/multistage/build-multi-dockerfiles.sh
+-rw-rw-r-- 1000/1000        18 2021-08-10 15:26 webdata/dockerfiles/multistage/.gitignore
+-rw-rw-r-- 1000/1000      1167 2021-08-10 15:26 webdata/dockerfiles/multistage/README.md
+-rw-rw-r-- 1000/1000       399 2021-08-10 16:18 webdata/dockerfiles/multistage/Dockerfile2
+-rwxrwxr-x 1000/1000       128 2021-08-10 15:26 webdata/dockerfiles/multistage/build.sh
+drwxrwxr-x 1000/1000         0 2021-08-10 15:14 webdata/dockerfiles/dicas/
+-rw-rw-r-- 1000/1000       347 2021-08-10 14:46 webdata/dockerfiles/dicas/Dockerfile5
+-rw-rw-r-- 1000/1000       155 2021-08-10 15:14 webdata/dockerfiles/dicas/Dockerfile
+-rw-rw-r-- 1000/1000       179 2021-08-09 18:56 webdata/dockerfiles/dicas/Dockerfile1
+-rw-rw-r-- 1000/1000       142 2021-08-10 14:54 webdata/dockerfiles/dicas/Dockerfile6
+-rw-rw-r-- 1000/1000       292 2021-08-09 21:06 webdata/dockerfiles/dicas/Dockerfile3
+drwxrwxr-x 1000/1000         0 2021-08-09 19:07 webdata/dockerfiles/dicas/app/
+drwxrwxr-x 1000/1000         0 2021-08-09 19:07 webdata/dockerfiles/dicas/app/samples/
+-rw-rw-r-- 1000/1000       446 2021-08-09 19:07 webdata/dockerfiles/dicas/app/samples/1.txt
+-rw-rw-r-- 1000/1000       702 2021-08-09 19:07 webdata/dockerfiles/dicas/app/samples/2.txt
+-rw-rw-r-- 1000/1000      2090 2021-08-09 19:07 webdata/dockerfiles/dicas/app/Count.java
+drwxrwxr-x 1000/1000         0 2021-08-09 19:07 webdata/dockerfiles/dicas/app/target/
+-rw-rw-r-- 1000/1000       446 2021-08-09 19:07 webdata/dockerfiles/dicas/app/target/sample.txt
+-rw-rw-r-- 1000/1000      1088 2021-08-09 19:07 webdata/dockerfiles/dicas/app/target/app.jar
+-rw-rw-r-- 1000/1000       702 2021-08-09 19:07 webdata/dockerfiles/dicas/app/target/sample2.txt
+drwxrwxr-x 1000/1000         0 2021-08-09 19:07 webdata/dockerfiles/dicas/app/.git/
+drwxrwxr-x 1000/1000         0 2021-08-09 19:07 webdata/dockerfiles/dicas/app/.git/branches/
+-rw-rw-r-- 1000/1000        21 2021-08-09 19:07 webdata/dockerfiles/dicas/app/.git/HEAD
+drwxrwxr-x 1000/1000         0 2021-08-09 19:07 webdata/dockerfiles/dicas/app/.git/refs/
+drwxrwxr-x 1000/1000         0 2021-08-09 19:07 webdata/dockerfiles/dicas/app/.git/refs/remotes/
+drwxrwxr-x 1000/1000         0 2021-08-09 19:07 webdata/dockerfiles/dicas/app/.git/refs/remotes/origin/
+-rw-rw-r-- 1000/1000        30 2021-08-09 19:07 webdata/dockerfiles/dicas/app/.git/refs/remotes/origin/HEAD
+drwxrwxr-x 1000/1000         0 2021-08-09 19:07 webdata/dockerfiles/dicas/app/.git/refs/tags/
+drwxrwxr-x 1000/1000         0 2021-08-09 19:07 webdata/dockerfiles/dicas/app/.git/refs/heads/
+-rw-rw-r-- 1000/1000        41 2021-08-09 19:07 webdata/dockerfiles/dicas/app/.git/refs/heads/main
+-rw-rw-r-- 1000/1000       112 2021-08-09 19:07 webdata/dockerfiles/dicas/app/.git/packed-refs
+drwxrwxr-x 1000/1000         0 2021-08-09 19:07 webdata/dockerfiles/dicas/app/.git/objects/
+drwxrwxr-x 1000/1000         0 2021-08-09 19:07 webdata/dockerfiles/dicas/app/.git/objects/pack/
+drwxrwxr-x 1000/1000         0 2021-08-09 19:07 webdata/dockerfiles/dicas/app/.git/objects/a0/
+-r--r--r-- 1000/1000       113 2021-08-09 19:07 webdata/dockerfiles/dicas/app/.git/objects/a0/696d9ef12e2eac38f5d0d378cfce91a968bfe6
+drwxrwxr-x 1000/1000         0 2021-08-09 19:07 webdata/dockerfiles/dicas/app/.git/objects/e2/
+-r--r--r-- 1000/1000       418 2021-08-09 19:07 webdata/dockerfiles/dicas/app/.git/objects/e2/d980b276bc57e84ea06dbdb1a71c24f0a1dd83
+drwxrwxr-x 1000/1000         0 2021-08-09 19:07 webdata/dockerfiles/dicas/app/.git/objects/7f/
+-r--r--r-- 1000/1000       135 2021-08-09 19:07 webdata/dockerfiles/dicas/app/.git/objects/7f/757544884db673274bb140a365e93fa37f6cca
+drwxrwxr-x 1000/1000         0 2021-08-09 19:07 webdata/dockerfiles/dicas/app/.git/objects/b1/
+-r--r--r-- 1000/1000       133 2021-08-09 19:07 webdata/dockerfiles/dicas/app/.git/objects/b1/c93d594871d7b7adbb9d621b983d738c00b433
+drwxrwxr-x 1000/1000         0 2021-08-09 19:07 webdata/dockerfiles/dicas/app/.git/objects/ff/
+-r--r--r-- 1000/1000       930 2021-08-09 19:07 webdata/dockerfiles/dicas/app/.git/objects/ff/d4feecac54b40d4161e7715a0e53ebe92deb40
+drwxrwxr-x 1000/1000         0 2021-08-09 19:07 webdata/dockerfiles/dicas/app/.git/objects/4b/
+-r--r--r-- 1000/1000        76 2021-08-09 19:07 webdata/dockerfiles/dicas/app/.git/objects/4b/a1d371d786452651aa42322a4518f314c6e49d
+drwxrwxr-x 1000/1000         0 2021-08-09 19:07 webdata/dockerfiles/dicas/app/.git/objects/info/
+drwxrwxr-x 1000/1000         0 2021-08-09 19:07 webdata/dockerfiles/dicas/app/.git/objects/75/
+-r--r--r-- 1000/1000       215 2021-08-09 19:07 webdata/dockerfiles/dicas/app/.git/objects/75/dab00125760c2d586bf3ae6059d241c429e0e1
+drwxrwxr-x 1000/1000         0 2021-08-09 19:07 webdata/dockerfiles/dicas/app/.git/objects/1b/
+-r--r--r-- 1000/1000       284 2021-08-09 19:07 webdata/dockerfiles/dicas/app/.git/objects/1b/376877f435b1848c818e97e52298f51b8f1beb
+drwxrwxr-x 1000/1000         0 2021-08-09 19:07 webdata/dockerfiles/dicas/app/.git/objects/e6/
+-r--r--r-- 1000/1000       642 2021-08-09 19:07 webdata/dockerfiles/dicas/app/.git/objects/e6/d1f7bae7a9a0e7ac7c73866d445c2144e3f294
+drwxrwxr-x 1000/1000         0 2021-08-09 19:07 webdata/dockerfiles/dicas/app/.git/objects/8d/
+-r--r--r-- 1000/1000      1097 2021-08-09 19:07 webdata/dockerfiles/dicas/app/.git/objects/8d/e69d9336b8ecf0ecd199153b85b607d416cb15
+drwxrwxr-x 1000/1000         0 2021-08-09 19:07 webdata/dockerfiles/dicas/app/.git/objects/80/
+-r--r--r-- 1000/1000        34 2021-08-09 19:07 webdata/dockerfiles/dicas/app/.git/objects/80/621ee625ece3f0e8fc1a1cdf389f50e2072165
+drwxrwxr-x 1000/1000         0 2021-08-09 19:07 webdata/dockerfiles/dicas/app/.git/hooks/
+-rwxrwxr-x 1000/1000      3610 2021-08-09 19:07 webdata/dockerfiles/dicas/app/.git/hooks/update.sample
+-rwxrwxr-x 1000/1000       544 2021-08-09 19:07 webdata/dockerfiles/dicas/app/.git/hooks/pre-receive.sample
+-rwxrwxr-x 1000/1000       424 2021-08-09 19:07 webdata/dockerfiles/dicas/app/.git/hooks/pre-applypatch.sample
+-rwxrwxr-x 1000/1000      1348 2021-08-09 19:07 webdata/dockerfiles/dicas/app/.git/hooks/pre-push.sample
+-rwxrwxr-x 1000/1000      3327 2021-08-09 19:07 webdata/dockerfiles/dicas/app/.git/hooks/fsmonitor-watchman.sample
+-rwxrwxr-x 1000/1000       896 2021-08-09 19:07 webdata/dockerfiles/dicas/app/.git/hooks/commit-msg.sample
+-rwxrwxr-x 1000/1000       189 2021-08-09 19:07 webdata/dockerfiles/dicas/app/.git/hooks/post-update.sample
+-rwxrwxr-x 1000/1000      1492 2021-08-09 19:07 webdata/dockerfiles/dicas/app/.git/hooks/prepare-commit-msg.sample
+-rwxrwxr-x 1000/1000      4898 2021-08-09 19:07 webdata/dockerfiles/dicas/app/.git/hooks/pre-rebase.sample
+-rwxrwxr-x 1000/1000       478 2021-08-09 19:07 webdata/dockerfiles/dicas/app/.git/hooks/applypatch-msg.sample
+-rwxrwxr-x 1000/1000      1642 2021-08-09 19:07 webdata/dockerfiles/dicas/app/.git/hooks/pre-commit.sample
+-rw-rw-r-- 1000/1000       840 2021-08-09 19:07 webdata/dockerfiles/dicas/app/.git/index
+drwxrwxr-x 1000/1000         0 2021-08-09 19:07 webdata/dockerfiles/dicas/app/.git/logs/
+-rw-rw-r-- 1000/1000       205 2021-08-09 19:07 webdata/dockerfiles/dicas/app/.git/logs/HEAD
+drwxrwxr-x 1000/1000         0 2021-08-09 19:07 webdata/dockerfiles/dicas/app/.git/logs/refs/
+drwxrwxr-x 1000/1000         0 2021-08-09 19:07 webdata/dockerfiles/dicas/app/.git/logs/refs/remotes/
+drwxrwxr-x 1000/1000         0 2021-08-09 19:07 webdata/dockerfiles/dicas/app/.git/logs/refs/remotes/origin/
+-rw-rw-r-- 1000/1000       205 2021-08-09 19:07 webdata/dockerfiles/dicas/app/.git/logs/refs/remotes/origin/HEAD
+drwxrwxr-x 1000/1000         0 2021-08-09 19:07 webdata/dockerfiles/dicas/app/.git/logs/refs/heads/
+-rw-rw-r-- 1000/1000       205 2021-08-09 19:07 webdata/dockerfiles/dicas/app/.git/logs/refs/heads/main
+-rw-rw-r-- 1000/1000        73 2021-08-09 19:07 webdata/dockerfiles/dicas/app/.git/description
+-rw-rw-r-- 1000/1000       270 2021-08-09 19:07 webdata/dockerfiles/dicas/app/.git/config
+drwxrwxr-x 1000/1000         0 2021-08-09 19:07 webdata/dockerfiles/dicas/app/.git/info/
+-rw-rw-r-- 1000/1000       240 2021-08-09 19:07 webdata/dockerfiles/dicas/app/.git/info/exclude
+-rw-rw-r-- 1000/1000       145 2021-08-09 19:07 webdata/dockerfiles/dicas/app/README.md
+-rw-rw-r-- 1000/1000      1044 2021-08-09 19:07 webdata/dockerfiles/dicas/app/Count.class
+-rw-rw-r-- 1000/1000        18 2021-08-09 19:07 webdata/dockerfiles/dicas/app/manifest
+-rw-rw-r-- 1000/1000       228 2021-08-09 19:25 webdata/dockerfiles/dicas/Dockerfile2
+-rw-rw-r-- 1000/1000       144 2021-08-10 15:05 webdata/dockerfiles/dicas/Dockerfile7
+-rw-rw-r-- 1000/1000       287 2021-08-10 13:48 webdata/dockerfiles/dicas/Dockerfile4
+drwxrwxr-x 1000/1000         0 2021-08-09 15:32 webdata/dockerfiles/echo-container/
+-rw-rw-r-- 1000/1000        56 2021-08-09 15:32 webdata/dockerfiles/echo-container/Dockerfile
+drwxrwxr-x 1000/1000         0 2021-08-06 17:33 webdata/dockerfiles/webserver/
+-rw-rw-r-- 1000/1000       149 2021-08-06 17:33 webdata/dockerfiles/webserver/Dockerfile
+drwxrwxr-x 1000/1000         0 2021-08-09 15:55 webdata/dockerfiles/dockerfiles/
+drwxrwxr-x 1000/1000         0 2021-08-09 16:04 webdata/dockerfiles/dockerfiles/exemplo1/
+drwxrwxr-x 1000/1000         0 2021-08-09 16:04 webdata/dockerfiles/dockerfiles/exemplo1/image/
+-rw-rw-r-- 1000/1000        60 2021-08-09 16:00 webdata/dockerfiles/dockerfiles/exemplo1/image/Dockerfile
+drwxrwxr-x 1000/1000         0 2021-08-09 18:59 webdata/dockerfiles/dockerfiles/exemplo1/context/
+drwxr-xr-x 1000/1000         0 2021-08-09 16:29 webdata/dockerfiles/dockerfiles/exemplo1/context/log/
+drwxr-xr-x 1000/1000         0 2021-08-09 16:29 webdata/dockerfiles/dockerfiles/exemplo1/context/log/apt/
+-rw-r--r-- 1000/1000      3171 2021-08-09 16:29 webdata/dockerfiles/dockerfiles/exemplo1/context/log/apt/history.log
+-rw-r----- 1000/1000     15372 2021-08-09 16:29 webdata/dockerfiles/dockerfiles/exemplo1/context/log/apt/term.log
+-rw-r--r-- 1000/1000     20208 2021-08-09 16:29 webdata/dockerfiles/dockerfiles/exemplo1/context/log/apt/eipp.log.xz
+-rw-r----- 1000/1000      8199 2021-08-09 16:29 webdata/dockerfiles/dockerfiles/exemplo1/context/log/cloud-init-output.log
+-rw-r----- 1000/1000    216950 2021-08-09 16:29 webdata/dockerfiles/dockerfiles/exemplo1/context/log/syslog
+-rw-r--r-- 1000/1000    292584 2021-08-09 16:29 webdata/dockerfiles/dockerfiles/exemplo1/context/log/lastlog
+-rw-r----- 1000/1000     19739 2021-08-09 16:29 webdata/dockerfiles/dockerfiles/exemplo1/context/log/auth.log
+-rw-r--r-- 1000/1000      6912 2021-08-09 16:29 webdata/dockerfiles/dockerfiles/exemplo1/context/log/wtmp
+-rw-r----- 1000/1000    101905 2021-08-09 16:29 webdata/dockerfiles/dockerfiles/exemplo1/context/log/kern.log
+-rw-r--r-- 1000/1000     28703 2021-08-09 16:29 webdata/dockerfiles/dockerfiles/exemplo1/context/log/dpkg.log
+drwxr-x--- 1000/1000         0 2021-08-09 16:29 webdata/dockerfiles/dockerfiles/exemplo1/context/log/unattended-upgrades/
+-rw-r--r-- 1000/1000       112 2021-08-09 16:29 webdata/dockerfiles/dockerfiles/exemplo1/context/log/unattended-upgrades/unattended-upgrades-shutdown.log
+-rw-r--r-- 1000/1000      1107 2021-08-09 16:29 webdata/dockerfiles/dockerfiles/exemplo1/context/log/unattended-upgrades/unattended-upgrades.log
+-rw-r--r-- 1000/1000      8897 2021-08-09 16:29 webdata/dockerfiles/dockerfiles/exemplo1/context/log/unattended-upgrades/unattended-upgrades-dpkg.log
+-rw------- 1000/1000     64128 2021-08-09 16:29 webdata/dockerfiles/dockerfiles/exemplo1/context/log/tallylog
+drwxr-xr-x 1000/1000         0 2021-08-09 16:29 webdata/dockerfiles/dockerfiles/exemplo1/context/log/journal/
+drwxr-xr-x 1000/1000         0 2021-08-09 16:29 webdata/dockerfiles/dockerfiles/exemplo1/context/log/journal/d217dd6f2d004f42bb5d31510a886176/
+-rw-r----- 1000/1000   8388608 2021-08-09 16:29 webdata/dockerfiles/dockerfiles/exemplo1/context/log/journal/d217dd6f2d004f42bb5d31510a886176/user-1000.journal
+-rw-r----- 1000/1000   8388608 2021-08-09 16:29 webdata/dockerfiles/dockerfiles/exemplo1/context/log/journal/d217dd6f2d004f42bb5d31510a886176/system.journal
+drwxr-xr-x 1000/1000         0 2021-08-09 16:29 webdata/dockerfiles/dockerfiles/exemplo1/context/log/lxd/
+-rw------- 1000/1000       664 2021-08-09 16:29 webdata/dockerfiles/dockerfiles/exemplo1/context/log/ubuntu-advantage.log
+-rw-r----- 1000/1000         0 2021-08-09 16:29 webdata/dockerfiles/dockerfiles/exemplo1/context/log/btmp
+drwxr-xr-x 1000/1000         0 2021-08-09 16:29 webdata/dockerfiles/dockerfiles/exemplo1/context/log/dist-upgrade/
+drwxr-xr-x 1000/1000         0 2021-08-09 16:29 webdata/dockerfiles/dockerfiles/exemplo1/context/log/landscape/
+-rw-r--r-- 1000/1000         0 2021-08-09 16:29 webdata/dockerfiles/dockerfiles/exemplo1/context/log/landscape/sysinfo.log
+-rw-r--r-- 1000/1000    182190 2021-08-09 16:29 webdata/dockerfiles/dockerfiles/exemplo1/context/log/cloud-init.log
+-rw-rw-r-- 1000/1000        29 2021-08-09 15:57 webdata/dockerfiles/dockerfiles/exemplo1/context/conteudo.txt
+
+vagrant@node01:~/backup$ docker container rm -f $(docker container ls -aq)
+8880fcd00a20
+
+vagrant@node01:~/backup$ docker volume rm -f $(docker volume ls -q)
+6f109d6a526d452df8f538a2b49e55add9470db865bdfd3d09c40505a2449da9
+
+# Restore
+
+vagrant@node01:~/backup$ docker container run -dit -v /webdata --name webserver2 debian
+6a848783a2f4e89c5b98613932d61d5a8f8ea8699724a0d63368d763be7faeee
+
+vagrant@node01:~/backup$ docker container exec webserver2 ls -Lr /webdata
+
+vagrant@node01:~/backup$ docker container run --rm --volumes-from webserver2 -v $(pwd):/backup alpine ash -c "cd /webdata && tar xvf /backup/backup.tar --strip 1"
+webdata/
+webdata/dockerfiles/
+
+vagrant@node01:~/backup$ docker container exec webserver2 ls -lR /webdata
+/webdata:
+total 4
+drwxrwxr-x 7 1000 1000 4096 Aug 17 18:31 dockerfiles
+
+/webdata/dockerfiles:
+total 20
+drwxrwxr-x 3 1000 1000 4096 Aug 17 18:31 dicas
+drwxrwxr-x 3 1000 1000 4096 Aug 17 18:31 dockerfiles
+drwxrwxr-x 2 1000 1000 4096 Aug 17 18:31 echo-container
+drwxrwxr-x 4 1000 1000 4096 Aug 17 18:31 multistage
+drwxrwxr-x 2 1000 1000 4096 Aug 17 18:31 webserver
+
+/webdata/dockerfiles/dicas:
+total 36
+-rw-rw-r-- 1 1000 1000  155 Aug 10 15:14 Dockerfile
+-rw-rw-r-- 1 1000 1000  179 Aug  9 18:56 Dockerfile1
+-rw-rw-r-- 1 1000 1000  228 Aug  9 19:25 Dockerfile2
+-rw-rw-r-- 1 1000 1000  292 Aug  9 21:06 Dockerfile3
+-rw-rw-r-- 1 1000 1000  287 Aug 10 13:48 Dockerfile4
+-rw-rw-r-- 1 1000 1000  347 Aug 10 14:46 Dockerfile5
+-rw-rw-r-- 1 1000 1000  142 Aug 10 14:54 Dockerfile6
+-rw-rw-r-- 1 1000 1000  144 Aug 10 15:05 Dockerfile7
+drwxrwxr-x 5 1000 1000 4096 Aug 17 18:31 app
+
+/webdata/dockerfiles/dicas/app:
+total 24
+-rw-rw-r-- 1 1000 1000 1044 Aug  9 19:07 Count.class
+-rw-rw-r-- 1 1000 1000 2090 Aug  9 19:07 Count.java
+-rw-rw-r-- 1 1000 1000  145 Aug  9 19:07 README.md
+-rw-rw-r-- 1 1000 1000   18 Aug  9 19:07 manifest
+drwxrwxr-x 2 1000 1000 4096 Aug 17 18:31 samples
+drwxrwxr-x 2 1000 1000 4096 Aug 17 18:31 target
+
+/webdata/dockerfiles/dicas/app/samples:
+total 8
+-rw-rw-r-- 1 1000 1000 446 Aug  9 19:07 1.txt
+-rw-rw-r-- 1 1000 1000 702 Aug  9 19:07 2.txt
+
+/webdata/dockerfiles/dicas/app/target:
+total 12
+-rw-rw-r-- 1 1000 1000 1088 Aug  9 19:07 app.jar
+-rw-rw-r-- 1 1000 1000  446 Aug  9 19:07 sample.txt
+-rw-rw-r-- 1 1000 1000  702 Aug  9 19:07 sample2.txt
+
+/webdata/dockerfiles/dockerfiles:
+total 4
+drwxrwxr-x 4 1000 1000 4096 Aug 17 18:31 exemplo1
+
+/webdata/dockerfiles/dockerfiles/exemplo1:
+total 8
+drwxrwxr-x 3 1000 1000 4096 Aug 17 18:31 context
+drwxrwxr-x 2 1000 1000 4096 Aug 17 18:31 image
+
+/webdata/dockerfiles/dockerfiles/exemplo1/context:
+total 8
+-rw-rw-r-- 1 1000 1000   29 Aug  9 15:57 conteudo.txt
+drwxr-xr-x 8 1000 1000 4096 Aug 17 18:31 log
+
+/webdata/dockerfiles/dockerfiles/exemplo1/context/log:
+total 944
+drwxr-xr-x 2 1000 1000   4096 Aug 17 18:31 apt
+-rw-r----- 1 1000 1000  19739 Aug  9 16:29 auth.log
+-rw-r----- 1 1000 1000      0 Aug  9 16:29 btmp
+-rw-r----- 1 1000 1000   8199 Aug  9 16:29 cloud-init-output.log
+-rw-r--r-- 1 1000 1000 182190 Aug  9 16:29 cloud-init.log
+drwxr-xr-x 2 1000 1000   4096 Aug  9 16:29 dist-upgrade
+-rw-r--r-- 1 1000 1000  28703 Aug  9 16:29 dpkg.log
+drwxr-xr-x 3 1000 1000   4096 Aug 17 18:31 journal
+-rw-r----- 1 1000 1000 101905 Aug  9 16:29 kern.log
+drwxr-xr-x 2 1000 1000   4096 Aug 17 18:31 landscape
+-rw-r--r-- 1 1000 1000 292584 Aug  9 16:29 lastlog
+drwxr-xr-x 2 1000 1000   4096 Aug  9 16:29 lxd
+-rw-r----- 1 1000 1000 216950 Aug  9 16:29 syslog
+-rw------- 1 1000 1000  64128 Aug  9 16:29 tallylog
+-rw------- 1 1000 1000    664 Aug  9 16:29 ubuntu-advantage.log
+drwxr-x--- 2 1000 1000   4096 Aug 17 18:31 unattended-upgrades
+-rw-r--r-- 1 1000 1000   6912 Aug  9 16:29 wtmp
+
+/webdata/dockerfiles/dockerfiles/exemplo1/context/log/apt:
+total 40
+-rw-r--r-- 1 1000 1000 20208 Aug  9 16:29 eipp.log.xz
+-rw-r--r-- 1 1000 1000  3171 Aug  9 16:29 history.log
+-rw-r----- 1 1000 1000 15372 Aug  9 16:29 term.log
+
+/webdata/dockerfiles/dockerfiles/exemplo1/context/log/dist-upgrade:
+total 0
+
+/webdata/dockerfiles/dockerfiles/exemplo1/context/log/journal:
+total 4
+drwxr-xr-x 2 1000 1000 4096 Aug 17 18:31 d217dd6f2d004f42bb5d31510a886176
+
+/webdata/dockerfiles/dockerfiles/exemplo1/context/log/journal/d217dd6f2d004f42bb5d31510a886176:
+total 16384
+-rw-r----- 1 1000 1000 8388608 Aug  9 16:29 system.journal
+-rw-r----- 1 1000 1000 8388608 Aug  9 16:29 user-1000.journal
+
+/webdata/dockerfiles/dockerfiles/exemplo1/context/log/landscape:
+total 0
+-rw-r--r-- 1 1000 1000 0 Aug  9 16:29 sysinfo.log
+
+/webdata/dockerfiles/dockerfiles/exemplo1/context/log/lxd:
+total 0
+
+/webdata/dockerfiles/dockerfiles/exemplo1/context/log/unattended-upgrades:
+total 20
+-rw-r--r-- 1 1000 1000 8897 Aug  9 16:29 unattended-upgrades-dpkg.log
+-rw-r--r-- 1 1000 1000  112 Aug  9 16:29 unattended-upgrades-shutdown.log
+-rw-r--r-- 1 1000 1000 1107 Aug  9 16:29 unattended-upgrades.log
+
+/webdata/dockerfiles/dockerfiles/exemplo1/image:
+total 4
+-rw-rw-r-- 1 1000 1000 60 Aug  9 16:00 Dockerfile
+
+/webdata/dockerfiles/echo-container:
+total 4
+-rw-rw-r-- 1 1000 1000 56 Aug  9 15:32 Dockerfile
+
+/webdata/dockerfiles/multistage:
+total 44
+-rw-rw-r-- 1 1000 1000  106 Aug 10 16:49 Dockerfile
+-rw-rw-r-- 1 1000 1000  234 Aug 10 15:39 Dockerfile1
+-rw-rw-r-- 1 1000 1000  399 Aug 10 16:18 Dockerfile2
+-rw-rw-r-- 1 1000 1000  510 Aug 10 15:26 Gopkg.lock
+-rw-rw-r-- 1 1000 1000  719 Aug 10 15:26 Gopkg.toml
+-rw-rw-r-- 1 1000 1000 1067 Aug 10 15:26 LICENSE
+-rw-rw-r-- 1 1000 1000 1167 Aug 10 15:26 README.md
+-rw-rw-r-- 1 1000 1000 1709 Aug 10 15:26 app.go
+-rwxrwxr-x 1 1000 1000  382 Aug 10 15:26 build-multi-dockerfiles.sh
+-rwxrwxr-x 1 1000 1000  128 Aug 10 15:26 build.sh
+drwxrwxr-x 3 1000 1000 4096 Aug 17 18:31 vendor
+
+/webdata/dockerfiles/multistage/vendor:
+total 4
+drwxrwxr-x 3 1000 1000 4096 Aug 17 18:31 golang.org
+
+/webdata/dockerfiles/multistage/vendor/golang.org:
+total 4
+drwxrwxr-x 3 1000 1000 4096 Aug 17 18:31 x
+
+/webdata/dockerfiles/multistage/vendor/golang.org/x:
+total 4
+drwxrwxr-x 3 1000 1000 4096 Aug 17 18:31 net
+
+/webdata/dockerfiles/multistage/vendor/golang.org/x/net:
+total 20
+-rw-rw-r-- 1 1000 1000  173 Aug 10 15:26 AUTHORS
+-rw-rw-r-- 1 1000 1000  170 Aug 10 15:26 CONTRIBUTORS
+-rw-rw-r-- 1 1000 1000 1479 Aug 10 15:26 LICENSE
+-rw-rw-r-- 1 1000 1000 1303 Aug 10 15:26 PATENTS
+drwxrwxr-x 3 1000 1000 4096 Aug 17 18:31 html
+
+/webdata/dockerfiles/multistage/vendor/golang.org/x/net/html:
+total 256
+drwxrwxr-x 2 1000 1000   4096 Aug 17 18:31 atom
+-rw-rw-r-- 1 1000 1000   2618 Aug 10 15:26 const.go
+-rw-rw-r-- 1 1000 1000   3415 Aug 10 15:26 doc.go
+-rw-rw-r-- 1 1000 1000   4925 Aug 10 15:26 doctype.go
+-rw-rw-r-- 1 1000 1000 114594 Aug 10 15:26 entity.go
+-rw-rw-r-- 1 1000 1000   6053 Aug 10 15:26 escape.go
+-rw-rw-r-- 1 1000 1000   6913 Aug 10 15:26 foreign.go
+-rw-rw-r-- 1 1000 1000   5355 Aug 10 15:26 node.go
+-rw-rw-r-- 1 1000 1000  57896 Aug 10 15:26 parse.go
+-rw-rw-r-- 1 1000 1000   7062 Aug 10 15:26 render.go
+-rw-rw-r-- 1 1000 1000  30558 Aug 10 15:26 token.go
+
+/webdata/dockerfiles/multistage/vendor/golang.org/x/net/html/atom:
+total 44
+-rw-rw-r-- 1 1000 1000  2321 Aug 10 15:26 atom.go
+-rw-rw-r-- 1 1000 1000 11995 Aug 10 15:26 gen.go
+-rw-rw-r-- 1 1000 1000 27822 Aug 10 15:26 table.go
+
+/webdata/dockerfiles/webserver:
+total 4
+-rw-rw-r-- 1 1000 1000 149 Aug  6 17:33 Dockerfile
+
+vagrant@node01:~/backup$ docker container exec webserver2 ls -l /webdata
+total 4
+drwxrwxr-x 7 1000 1000 4096 Aug 17 18:31 dockerfiles
