@@ -2890,3 +2890,314 @@ drwxrwxr-x 7 1000 1000 4096 Aug 17 18:31 dockerfiles
 # Aula 5: Docker DCA 05 - Volume Plugins
 
 https://www.youtube.com/watch?v=GUtIVR0OOv4&t=19s
+
+vagrant up node01 node02
+
+vagrant ssh node01
+
+# RESUMO
+
+# Nomeado
+# Anonimo
+# Host
+
+# Nomeado --> -v volumenomeado:/app
+# Anonimo --> -v /app
+# Host    --> -v /home/vagrant/volumehost:/app
+
+# -v --volume
+# --mount
+# --mount --> Aceita customizações
+# --mount source=/home/vagrant/volume,target=/app
+# tmpfs --> volume que fica na memoria ram <--
+
+=====================================================
+
+vagrant@node01:~$ docker plugin install vieux/sshfs
+
+vagrant@node01:~$ docker plugin install vieux/sshfs
+Plugin "vieux/sshfs" is requesting the following privileges:
+ - network: [host]
+ - mount: [/var/lib/docker/plugins/]
+ - mount: []
+ - device: [/dev/fuse]
+ - capabilities: [CAP_SYS_ADMIN]
+Do you grant the above permissions? [y/N] y
+latest: Pulling from vieux/sshfs
+Digest: sha256:1d3c3e42c12138da5ef7873b97f7f32cf99fb6edde75fa4f0bcf9ed277855811
+52d435ada6a4: Complete 
+Installed plugin vieux/sshfs
+
+vagrant@node01:~$ docker plugin ls
+ID             NAME                 DESCRIPTION               ENABLED
+2aae946f185f   vieux/sshfs:latest   sshFS plugin for Docker   true
+
+
+vagrant ssh node02
+
+[vagrant@node02 ~]$ sudo yum install vim -y
+
+sudo vim /etc/ssh/sshd_config
+
+set number
+
+65
+
+65 PasswordAuthentication no
+
+ou sudo vim /etc/ssh/sshd_config +65
+
+# alterar
+65 PasswordAuthentication yes
+
+[vagrant@node02 ~]$ sudo systemctl restart sshd
+
+vagrant@node01:~$ docker volume create batatinha
+batatinha
+vagrant@node01:~$ docker volume ls
+DRIVER    VOLUME NAME
+local     batatinha
+
+[vagrant@node02 ~]$ ip -c -br a
+lo               UNKNOWN        127.0.0.1/8 ::1/128 
+eth0             UP             10.0.2.15/24 fe80::5054:ff:fe4d:77d3/64 
+eth1             UP             10.20.20.120/24 fe80::a00:27ff:fe13:7018/64 
+
+vagrant@node01:~$ ping -c4 10.20.20.120
+PING 10.20.20.120 (10.20.20.120) 56(84) bytes of data.
+64 bytes from 10.20.20.120: icmp_seq=1 ttl=64 time=1.15 ms
+64 bytes from 10.20.20.120: icmp_seq=2 ttl=64 time=0.780 ms
+64 bytes from 10.20.20.120: icmp_seq=3 ttl=64 time=0.926 ms
+64 bytes from 10.20.20.120: icmp_seq=4 ttl=64 time=1.06 ms
+
+--- 10.20.20.120 ping statistics ---
+4 packets transmitted, 4 received, 0% packet loss, time 3088ms
+rtt min/avg/max/mdev = 0.780/0.979/1.151/0.143 ms
+
+# parei 37,04
+
+vagrant@node01:~$ docker volume create -d vieux/sshfs --name sshvolume -o sshcmd=vagrant@10.20.20.120:/vagrant -o password=vagrant
+
+[vagrant@node02 ~]$ ls /vagrant
+LICENSE  README.md  Vagrantfile  comandos  comands.sh  files  provision.sh  ubuntu-bionic-18.04-cloudimg-console.log
+
+[vagrant@node02 ~]$ ls -l /vagrant
+total 224
+-rw-rw-r--. 1 vagrant vagrant  35149 Aug 17 18:45 LICENSE
+-rw-rw-r--. 1 vagrant vagrant   1456 Aug 17 18:45 README.md
+-rw-rw-r--. 1 vagrant vagrant   1014 Aug 17 18:45 Vagrantfile
+drwxrwxr-x. 8 vagrant vagrant     96 Aug 17 18:45 comandos
+-rw-rw-r--. 1 vagrant vagrant 137498 Aug 31 21:30 comands.sh
+drwxrwxr-x. 2 vagrant vagrant     32 Aug 17 18:45 files
+-rw-rw-r--. 1 vagrant vagrant    649 Aug 17 18:45 provision.sh
+-rw-------. 1 vagrant vagrant  40582 Sep  1 13:28 ubuntu-bionic-18.04-cloudimg-console.log
+
+vagrant@node01:~$ docker volume create -d vieux/sshfs --name sshvolume -o sshcmd=vagrant@10.20.20.120:/vagrant -o password=vagrant
+sshvolume
+
+vagrant@node01:~$ docker volume ls
+DRIVER               VOLUME NAME
+local                batatinha
+vieux/sshfs:latest   sshvolume
+
+vagrant@node01:~$ docker volume inspect sshvolume
+[
+    {
+        "CreatedAt": "0001-01-01T00:00:00Z",
+        "Driver": "vieux/sshfs:latest",
+        "Labels": {},
+        "Mountpoint": "/mnt/volumes/dbad60be1c708306baab84ee3f2b4d28",
+        "Name": "sshvolume",
+        "Options": {
+            "password": "vagrant",
+            "sshcmd": "vagrant@10.20.20.120:/vagrant"
+        },
+        "Scope": "local"
+    }
+]
+
+vagrant@node01:~$ docker volume inspect sshvolume | jq
+[
+  {
+    "CreatedAt": "0001-01-01T00:00:00Z",
+    "Driver": "vieux/sshfs:latest",
+    "Labels": {},
+    "Mountpoint": "/mnt/volumes/dbad60be1c708306baab84ee3f2b4d28",
+    "Name": "sshvolume",
+    "Options": {
+      "password": "vagrant",
+      "sshcmd": "vagrant@10.20.20.120:/vagrant"
+    },
+    "Scope": "local"
+  }
+]
+
+vagrant@node01:~$ docker container run --rm -v sshvolume:/data alpine ls /data
+
+vagrant@node01:~$ docker container run --rm -v sshvolume:/data alpine ls /data
+Unable to find image 'alpine:latest' locally
+latest: Pulling from library/alpine
+a0d0a0d46f8b: Pull complete 
+Digest: sha256:e1c082e3d3c45cccac829840a25941e679c25d438cc8412c2fa221cf1a824e6a
+Status: Downloaded newer image for alpine:latest
+LICENSE
+README.md
+Vagrantfile
+comandos
+comands.sh
+files
+provision.sh
+ubuntu-bionic-18.04-cloudimg-console.log
+
+[vagrant@node02 vagrant]$ echo "<h1>SSHFS NAO USAR EM PRODUCAO VACILAO</h1>" > index.html
+[vagrant@node02 vagrant]$ cat index.html
+<h1>SSHFS NAO USAR EM PRODUCAO VACILAO</h1>
+
+
+vagrant@node01:~$ docker container run --rm -v sshvolume:/data alpine cat /data/index.html
+<h1>SSHFS NAO USAR EM PRODUCAO VACILAO</h1>
+
+┌─[orbite]@[Navita]:~/docker-dca
+└──> $ vagrant up master
+
+vagrant ssh master
+
+# NFS --> Network File System
+
+vagrant@master:~$ sudo apt-get update && sudo apt-get install nfs-server -y
+
+vagrant@master:~$ mkdir -p /home/vagrant/storage
+
+vagrant@master:~$ sudo vim /etc/exports
+
+# limpar todo arquivo dentro dele -->
+
+# /etc/exports: the access control list for filesystems which may be exported
+#               to NFS clients.  See exports(5).
+#
+# Example for NFSv2 and NFSv3:
+# /srv/homes       hostname1(rw,sync,no_subtree_check) hostname2(ro,sync,no_subtree_check)
+#
+# Example for NFSv4:
+# /srv/nfs4        gss/krb5i(rw,sync,fsid=0,crossmnt,no_subtree_check)
+# /srv/nfs4/homes  gss/krb5i(rw,sync,no_subtree_check)
+
+/home/vagrant/storage 10.20.20.0/24(rw)
+
+vagrant@master:~$ echo "/home/vagrant/storage 10.20.20.0/24(rw)"| sudo tee -a /etc/exports 
+/home/vagrant/storage 10.20.20.0/24(rw)
+
+
+vagrant@master:~$ cat /etc/exports 
+/home/vagrant/storage 10.20.20.0/24(rw)
+
+vagrant@master:~$ echo "<h1> Volume NFS master.docker-dca.example</h1>" | tee /home/vagrant/storage/index.html
+<h1> Volume NFS master.docker-dca.example</h1>
+
+vagrant@master:~$ sudo systemctl restart nfs-server
+
+# mostra a lista de exports criados para essa máquina
+
+vagrant@master:~$ showmount -e
+Export list for master:
+/home/vagrant/storage 10.20.20.0/24
+
+vagrant@node01:~$ sudo apt-get install nfs-common -y
+
+vagrant@node01:~$ showmount -e
+clnt_create: RPC: Program not registered
+
+vagrant@node02 vagrant]$ sudo yum install nfs-utils -y
+
+[vagrant@node02 vagrant]$ showmount -e
+clnt_create: RPC: Program not registered
+
+vagrant@node01:~$ showmount -e master.docker-dca.example
+Export list for master.docker-dca.example:
+/home/vagrant/storage 10.20.20.0/24
+
+[vagrant@node02 vagrant]$ showmount -e master.docker-dca.example
+Export list for master.docker-dca.example:
+/home/vagrant/storage 10.20.20.0/24
+
+# não faça em produção
+
+vagrant@node01:~$ docker plugin install trajano/nfs-volume-plugin --grant-all-permissions
+
+vagrant@node02 vagrant]$ docker plugin install trajano/nfs-volume-plugin
+
+[vagrant@node02 vagrant]$ cat /etc/hosts
+127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
+::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
+127.0.1.1 node02.docker-dca.example node02
+10.20.20.100 master.docker-dca.example
+10.20.20.110 node01.docker-dca.example
+10.20.20.120 node02.docker-dca.example
+10.20.20.200 registry.docker-dca.example
+
+vagrant@node01:~$ cat /etc/hosts
+127.0.0.1       localhost
+
+# The following lines are desirable for IPv6 capable hosts
+::1     ip6-localhost   ip6-loopback
+fe00::0 ip6-localnet
+ff00::0 ip6-mcastprefix
+ff02::1 ip6-allnodes
+10.20.20.100    master.docker-dca.example
+10.20.20.110    node01.docker-dca.example
+10.20.20.120    node02.docker-dca.example
+10.20.20.200    registry.docker-dca.example
+127.0.1.1       ubuntu-bionic   ubuntu-bionic
+
+vagrant@master:~$ cat /etc/hosts
+127.0.0.1       localhost
+
+# The following lines are desirable for IPv6 capable hosts
+::1     ip6-localhost   ip6-loopback
+fe00::0 ip6-localnet
+ff00::0 ip6-mcastprefix
+ff02::1 ip6-allnodes
+10.20.20.100 master.docker-dca.example
+10.20.20.110 node01.docker-dca.example
+10.20.20.120 node02.docker-dca.example
+10.20.20.200 registry.docker-dca.example
+
+# erro reboot
+vagrant@node01:~$ docker volume create -d trajano/nfs-volume-plugin --opt device=master.docker-dca.exemple:/home/vagrant/storage --opt nfsopts=hard,proto=tcp,nfsvers=3,intr,nolock volume_nfs
+
+# ok
+[vagrant@node02 vagrant]$ docker volume inspect volume_nfs
+[
+    {
+        "CreatedAt": "0001-01-01T00:00:00Z",
+        "Driver": "trajano/nfs-volume-plugin:latest",
+        "Labels": {},
+        "Mountpoint": "",
+        "Name": "volume_nfs",
+        "Options": {
+            "device": "master.docker-dca.example:/home/vagrant/storage",
+            "nfsopts": "hard,proto=tcp,nfsvers=3,intr,nolock"
+        },
+        "Scope": "global",
+        "Status": {
+            "args": [
+                "-t",
+                "nfs",
+                "-o",
+                "hard,proto=tcp,nfsvers=3,intr,nolock",
+                "master.docker-dca.example:/home/vagrant/storage"
+            ],
+            "mounted": false
+        }
+    }
+]
+[vagrant@node02 vagrant]$ docker volume ls
+DRIVER                             VOLUME NAME
+trajano/nfs-volume-plugin:latest   volume_nfs
+
+==========================================================================
+
+# AULA 06 : Docker DCA 06 - Networking
+
+https://www.youtube.com/watch?v=U_qG96yNjiI&t=7s
+
