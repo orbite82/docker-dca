@@ -3201,3 +3201,1024 @@ trajano/nfs-volume-plugin:latest   volume_nfs
 
 https://www.youtube.com/watch?v=U_qG96yNjiI&t=7s
 
+# RECURSOS:
+- veTH 
+- bridge
+- ipTables 
+
+# veth --> Virtual Ethernet (placa de rede virtual)
+# bridge --> Ponte (roteamento do host para o container)
+# iptables --> Firewall de sitema linux
+
+# -p --> publish --> PUBLICAR
+# --publish
+
+vagrant@node01:~$ docker container run -dit --name webserver -p 80:80 nginx
+
+# -p / --publish  ORIGIM:DESTINO   HOST: CONTAINER
+# -p 80:80  --> PEGUE TODA CONEXAO NA PORTA 80 DO HOST, DIRECIONE PARA A PORTA 80 DO CONTAINER
+
+# Teste para validar
+
+vagrant@node01:~$ curl localhost
+<!DOCTYPE html>
+<html>
+<head>
+<title>Welcome to nginx!</title>
+<style>
+    body {
+        width: 35em;
+        margin: 0 auto;
+        font-family: Tahoma, Verdana, Arial, sans-serif;
+    }
+</style>
+</head>
+<body>
+<h1>Welcome to nginx!</h1>
+<p>If you see this page, the nginx web server is successfully installed and
+working. Further configuration is required.</p>
+
+<p>For online documentation and support please refer to
+<a href="http://nginx.org/">nginx.org</a>.<br/>
+Commercial support is available at
+<a href="http://nginx.com/">nginx.com</a>.</p>
+
+<p><em>Thank you for using nginx.</em></p>
+</body>
+</html>
+
+http://10.20.20.110/
+
+ou http://docker-dca.example
+
+vagrant@node01:~$ docker container rm -f webserver
+webserver
+
+# NETWORK DRIVERS
+
+#   - bridge
+#   - host
+#   - overlay
+#   - mcvlan
+#   - none
+#   - plugins de drivers
+
+vagrant@node01:~$ docker network ls
+NETWORK ID     NAME      DRIVER    SCOPE
+d812223dc08e   bridge    bridge    local
+e087559f25d1   host      host      local
+606862980ab8   none      null      local
+
+# BRIDGE --> RESOLUÇÃO DNS + CONECTE E DESCONECTE CONTAINERS
+
+vagrant@node01:~$ docker container run -dit --name webserver --network bridge -p 80:80 nginx
+1a2f6a55b3d3cbe7957b64b8cefdd273885c466d052632ebf2978294489ac414
+
+vagrant@node01:~$ docker network ls
+NETWORK ID     NAME      DRIVER    SCOPE
+d812223dc08e   bridge    bridge    local
+e087559f25d1   host      host      local
+606862980ab8   none      null      localdomain
+
+vagrant@node01:~$ ip -c -br a
+lo               UNKNOWN        127.0.0.1/8 ::1/128 
+enp0s3           UP             10.0.2.15/24 fe80::bb:9ff:fe5e:a926/64 
+enp0s8           UP             10.20.20.110/24 fe80::a00:27ff:fe26:75b0/64 
+docker0          UP             172.17.0.1/16 fe80::42:87ff:feef:d665/64 
+veth0fb3cd8@if7  UP             fe80::e068:70ff:feb1:c4fd/64
+
+vagrant@node01:~$ docker network inspect bridge
+[
+    {
+        "Name": "bridge",
+        "Id": "d812223dc08efe7df2d1320aca3f4fb1c3f1d9fe6b332b2d29313113938d82d1",
+        "Created": "2021-09-02T12:48:15.816892794Z",
+        "Scope": "local",
+        "Driver": "bridge",
+        "EnableIPv6": false,
+        "IPAM": {
+            "Driver": "default",
+            "Options": null,
+            "Config": [
+                {
+                    "Subnet": "172.17.0.0/16",
+                    "Gateway": "172.17.0.1"
+                }
+            ]
+        },
+        "Internal": false,
+        "Attachable": false,
+        "Ingress": false,
+        "ConfigFrom": {
+            "Network": ""
+        },
+        "ConfigOnly": false,
+        "Containers": {
+            "1a2f6a55b3d3cbe7957b64b8cefdd273885c466d052632ebf2978294489ac414": {
+                "Name": "webserver",
+                "EndpointID": "3a3e932139a916d3934b041904df9c6a70852d0e7ac3f275c469d1ec6d2e98d5",
+                "MacAddress": "02:42:ac:11:00:02",
+                "IPv4Address": "172.17.0.2/16",
+                "IPv6Address": ""
+            }
+        },
+        "Options": {
+            "com.docker.network.bridge.default_bridge": "true",
+            "com.docker.network.bridge.enable_icc": "true",
+            "com.docker.network.bridge.enable_ip_masquerade": "true",
+            "com.docker.network.bridge.host_binding_ipv4": "0.0.0.0",
+            "com.docker.network.bridge.name": "docker0",
+            "com.docker.network.driver.mtu": "1500"
+        },
+        "Labels": {}
+    }
+]
+
+vagrant@node01:~$ docker network inspect bridge | jq
+[
+  {
+    "Name": "bridge",
+    "Id": "d812223dc08efe7df2d1320aca3f4fb1c3f1d9fe6b332b2d29313113938d82d1",
+    "Created": "2021-09-02T12:48:15.816892794Z",
+    "Scope": "local",
+    "Driver": "bridge",
+    "EnableIPv6": false,
+    "IPAM": {
+      "Driver": "default",
+      "Options": null,
+      "Config": [
+        {
+          "Subnet": "172.17.0.0/16",
+          "Gateway": "172.17.0.1"
+        }
+      ]
+    },
+    "Internal": false,
+    "Attachable": false,
+    "Ingress": false,
+    "ConfigFrom": {
+      "Network": ""
+    },
+    "ConfigOnly": false,
+    "Containers": {
+      "1a2f6a55b3d3cbe7957b64b8cefdd273885c466d052632ebf2978294489ac414": {
+        "Name": "webserver",
+        "EndpointID": "3a3e932139a916d3934b041904df9c6a70852d0e7ac3f275c469d1ec6d2e98d5",
+        "MacAddress": "02:42:ac:11:00:02",
+        "IPv4Address": "172.17.0.2/16",
+        "IPv6Address": ""
+      }
+    },
+    "Options": {
+      "com.docker.network.bridge.default_bridge": "true",
+      "com.docker.network.bridge.enable_icc": "true",
+      "com.docker.network.bridge.enable_ip_masquerade": "true",
+      "com.docker.network.bridge.host_binding_ipv4": "0.0.0.0",
+      "com.docker.network.bridge.name": "docker0",
+      "com.docker.network.driver.mtu": "1500"
+    },
+    "Labels": {}
+  }
+]
+
+vagrant@node01:~$ docker container rm -f webserver
+webserver
+
+vagrant@node01:~$ ip -c -br a
+lo               UNKNOWN        127.0.0.1/8 ::1/128 
+enp0s3           UP             10.0.2.15/24 fe80::bb:9ff:fe5e:a926/64 
+enp0s8           UP             10.20.20.110/24 fe80::a00:27ff:fe26:75b0/64 
+docker0          DOWN           172.17.0.1/16 fe80::42:87ff:feef:d665/64 
+
+vagrant@node01:~$ docker container run -dit --name webserver --network bridge -p 80:80 nginx
+6eb8b185a636a5215366d8848627b63e6fe4a1fa6e3f983b904ebe27d434c73b
+
+vagrant@node01:~$ ip -c -br a
+lo               UNKNOWN        127.0.0.1/8 ::1/128 
+enp0s3           UP             10.0.2.15/24 fe80::bb:9ff:fe5e:a926/64 
+enp0s8           UP             10.20.20.110/24 fe80::a00:27ff:fe26:75b0/64 
+docker0          UP             172.17.0.1/16 fe80::42:87ff:feef:d665/64 
+veth1435316@if9  UP             fe80::f0b6:38ff:fe91:a46b/64
+
+# comando para listar as portas que estão em uso
+# https://explainshell.com/ site pra te ajudar
+
+vagrant@node01:~$ sudo ss -ntpl | grep 80
+LISTEN   0         128                 0.0.0.0:80               0.0.0.0:*        users:(("docker-proxy",pid=14639,fd=4))                                        
+LISTEN   0         128                    [::]:80                  [::]:*        users:(("docker-proxy",pid=14645,fd=4)) 
+
+vagrant@node01:~$ sudo iptables -nL
+Chain INPUT (policy ACCEPT)
+target     prot opt source               destination         
+
+Chain FORWARD (policy DROP)
+target     prot opt source               destination         
+DOCKER-USER  all  --  0.0.0.0/0            0.0.0.0/0           
+DOCKER-ISOLATION-STAGE-1  all  --  0.0.0.0/0            0.0.0.0/0           
+ACCEPT     all  --  0.0.0.0/0            0.0.0.0/0            ctstate RELATED,ESTABLISHED
+DOCKER     all  --  0.0.0.0/0            0.0.0.0/0           
+ACCEPT     all  --  0.0.0.0/0            0.0.0.0/0           
+ACCEPT     all  --  0.0.0.0/0            0.0.0.0/0           
+
+Chain OUTPUT (policy ACCEPT)
+target     prot opt source               destination         
+
+Chain DOCKER (1 references)
+target     prot opt source               destination         
+ACCEPT     tcp  --  0.0.0.0/0            172.17.0.2           tcp dpt:80
+
+Chain DOCKER-ISOLATION-STAGE-1 (1 references)
+target     prot opt source               destination         
+DOCKER-ISOLATION-STAGE-2  all  --  0.0.0.0/0            0.0.0.0/0           
+RETURN     all  --  0.0.0.0/0            0.0.0.0/0           
+
+Chain DOCKER-ISOLATION-STAGE-2 (1 references)
+target     prot opt source               destination         
+DROP       all  --  0.0.0.0/0            0.0.0.0/0           
+RETURN     all  --  0.0.0.0/0            0.0.0.0/0           
+
+Chain DOCKER-USER (1 references)
+target     prot opt source               destination         
+RETURN     all  --  0.0.0.0/0            0.0.0.0/0
+
+# Diferenças entre comandos
+
+# HOST --> CONTAINER-IP = HOST-IP
+
+docker container run -dit --name web --network host nginx
+
+# Bridge
+
+docker container run -dit --name web --network bridge -p 80:80 nginx
+
+
+vagrant@node01:~$ docker container run -dit --name web --network host nginx
+30bc251e72462f302fc6bce4146022adbf97ffb3c0bcfca88bf36639195d7fce
+
+vagrant@node01:~$ docker container ls
+CONTAINER ID   IMAGE     COMMAND                  CREATED          STATUS          PORTS     NAMES
+30bc251e7246   nginx     "/docker-entrypoint.…"   19 seconds ago   Up 18 seconds             web
+
+vagrant@node01:~$ curl localhost:80 
+
+<!DOCTYPE html>
+<html>
+<head>
+<title>Welcome to nginx!</title>
+<style>
+    body {
+        width: 35em;
+        margin: 0 auto;
+        font-family: Tahoma, Verdana, Arial, sans-serif;
+    }
+</style>
+</head>
+<body>
+<h1>Welcome to nginx!</h1>
+<p>If you see this page, the nginx web server is successfully installed and
+working. Further configuration is required.</p>
+
+<p>For online documentation and support please refer to
+<a href="http://nginx.org/">nginx.org</a>.<br/>
+Commercial support is available at
+<a href="http://nginx.com/">nginx.com</a>.</p>
+
+<p><em>Thank you for using nginx.</em></p>
+</body>
+</html>
+
+vagrant@node01:~$ sudo ss -ntpl | grep 80
+LISTEN   0         128                 0.0.0.0:80               0.0.0.0:*        users:(("nginx",pid=15164,fd=7),("nginx",pid=15163,fd=7),("nginx",pid=15108,fd=7))
+LISTEN   0         128                    [::]:80                  [::]:*        users:(("nginx",pid=15164,fd=8),("nginx",pid=15163,fd=8),("nginx",pid=15108,fd=8))
+
+vagrant@node01:~$ docker network inspect bridge | jq
+[
+  {
+    "Name": "bridge",
+    "Id": "d812223dc08efe7df2d1320aca3f4fb1c3f1d9fe6b332b2d29313113938d82d1",
+    "Created": "2021-09-02T12:48:15.816892794Z",
+    "Scope": "local",
+    "Driver": "bridge",
+    "EnableIPv6": false,
+    "IPAM": {
+      "Driver": "default",
+      "Options": null,
+      "Config": [
+        {
+          "Subnet": "172.17.0.0/16",
+          "Gateway": "172.17.0.1"
+        }
+      ]
+    },
+    "Internal": false,
+    "Attachable": false,
+    "Ingress": false,
+    "ConfigFrom": {
+      "Network": ""
+vagrant@node01:~$ sudo iptables -nL
+Chain INPUT (policy ACCEPT)
+target     prot opt source               destination         
+
+Chain FORWARD (policy DROP)
+target     prot opt source               destination         
+DOCKER-USER  all  --  0.0.0.0/0            0.0.0.0/0           
+DOCKER-ISOLATION-STAGE-1  all  --  0.0.0.0/0            0.0.0.0/0           
+ACCEPT     all  --  0.0.0.0/0            0.0.0.0/0            ctstate RELATED,ESTABLISHED
+DOCKER     all  --  0.0.0.0/0            0.0.0.0/0           
+ACCEPT     all  --  0.0.0.0/0            0.0.0.0/0           
+vagrant@node01:~$ docker container ls
+CONTAINER ID   IMAGE     COMMAND                  CREATED          STATUS          PORTS     NAMES
+30bc251e7246   nginx     "/docker-entrypoint.…"   19 seconds ago   Up 18 seconds             web
+vagrant@node01:~$ curl localhost:80 
+<!DOCTYPE html>
+<html>
+<head>
+vagrant@node01:~$ docker container inspect | jq
+"docker container inspect" requires at least 1 argument.
+See 'docker container inspect --help'.
+
+Usage:  docker container inspect [OPTIONS] CONTAINER [CONTAINER...]
+
+Display detailed information on one or more containers
+vagrant@node01:~$ docker container inspect web | jq
+[
+  {
+    "Id": "30bc251e72462f302fc6bce4146022adbf97ffb3c0bcfca88bf36639195d7fce",
+    "Created": "2021-09-02T16:54:18.78803397Z",
+    "Path": "/docker-entrypoint.sh",
+    "Args": [
+      "nginx",
+      "-g",
+      "daemon off;"
+    ],
+    "State": {
+      "Status": "running",
+      "Running": true,
+      "Paused": false,
+      "Restarting": false,
+      "OOMKilled": false,
+      "Dead": false,
+      "Pid": 15108,
+      "ExitCode": 0,
+      "Error": "",
+      "StartedAt": "2021-09-02T16:54:19.515561375Z",
+      "FinishedAt": "0001-01-01T00:00:00Z"
+    },
+    "Image": "sha256:dd34e67e3371dc2d1328790c3157ee42dfcae74afffd86b297459ed87a98c0fb",
+    "ResolvConfPath": "/var/lib/docker/containers/30bc251e72462f302fc6bce4146022adbf97ffb3c0bcfca88bf36639195d7fce/resolv.conf",
+    "HostnamePath": "/var/lib/docker/containers/30bc251e72462f302fc6bce4146022adbf97ffb3c0bcfca88bf36639195d7fce/hostname",
+    "HostsPath": "/var/lib/docker/containers/30bc251e72462f302fc6bce4146022adbf97ffb3c0bcfca88bf36639195d7fce/hosts",
+    "LogPath": "/var/lib/docker/containers/30bc251e72462f302fc6bce4146022adbf97ffb3c0bcfca88bf36639195d7fce/30bc251e72462f302fc6bce4146022adbf97ffb3c0bcfca88bf36639195d7fce-json.log",
+    "Name": "/web",
+    "RestartCount": 0,
+    "Driver": "overlay2",
+    "Platform": "linux",
+    "MountLabel": "",
+    "ProcessLabel": "",
+    "AppArmorProfile": "docker-default",
+    "ExecIDs": null,
+    "HostConfig": {
+      "Binds": null,
+      "ContainerIDFile": "",
+      "LogConfig": {
+        "Type": "json-file",
+        "Config": {}
+      },
+      "NetworkMode": "host",
+      "PortBindings": {},
+      "RestartPolicy": {
+        "Name": "no",
+        "MaximumRetryCount": 0
+      },
+      "AutoRemove": false,
+      "VolumeDriver": "",
+      "VolumesFrom": null,
+      "CapAdd": null,
+      "CapDrop": null,
+      "CgroupnsMode": "host",
+      "Dns": [],
+      "DnsOptions": [],
+      "DnsSearch": [],
+      "ExtraHosts": null,
+      "GroupAdd": null,
+      "IpcMode": "private",
+      "Cgroup": "",
+      "Links": null,
+      "OomScoreAdj": 0,
+      "PidMode": "",
+      "Privileged": false,
+      "PublishAllPorts": false,
+      "ReadonlyRootfs": false,
+      "SecurityOpt": null,
+      "UTSMode": "",
+      "UsernsMode": "",
+      "ShmSize": 67108864,
+      "Runtime": "runc",
+      "ConsoleSize": [
+        0,
+        0
+      ],
+      "Isolation": "",
+      "CpuShares": 0,
+      "Memory": 0,
+      "NanoCpus": 0,
+      "CgroupParent": "",
+      "BlkioWeight": 0,
+      "BlkioWeightDevice": [],
+      "BlkioDeviceReadBps": null,
+      "BlkioDeviceWriteBps": null,
+      "BlkioDeviceReadIOps": null,
+      "BlkioDeviceWriteIOps": null,
+      "CpuPeriod": 0,
+      "CpuQuota": 0,
+      "CpuRealtimePeriod": 0,
+      "CpuRealtimeRuntime": 0,
+      "CpusetCpus": "",
+      "CpusetMems": "",
+      "Devices": [],
+      "DeviceCgroupRules": null,
+      "DeviceRequests": null,
+      "KernelMemory": 0,
+      "KernelMemoryTCP": 0,
+      "MemoryReservation": 0,
+      "MemorySwap": 0,
+      "MemorySwappiness": null,
+      "OomKillDisable": false,
+      "PidsLimit": null,
+      "Ulimits": null,
+      "CpuCount": 0,
+      "CpuPercent": 0,
+      "IOMaximumIOps": 0,
+      "IOMaximumBandwidth": 0,
+      "MaskedPaths": [
+        "/proc/asound",
+        "/proc/acpi",
+        "/proc/kcore",
+        "/proc/keys",
+        "/proc/latency_stats",
+        "/proc/timer_list",
+        "/proc/timer_stats",
+        "/proc/sched_debug",
+        "/proc/scsi",
+        "/sys/firmware"
+      ],
+      "ReadonlyPaths": [
+        "/proc/bus",
+        "/proc/fs",
+        "/proc/irq",
+        "/proc/sys",
+        "/proc/sysrq-trigger"
+      ]
+    },
+    "GraphDriver": {
+      "Data": {
+        "LowerDir": "/var/lib/docker/overlay2/3588aa423f76b8c96918b6e86572d47fd78de61b02b15d9ded57807bdfd79289-init/diff:/var/lib/docker/overlay2/f44c2009d7d1244778163de6cfe99e075460d96d84bfb134442417efb885a341/diff:/var/lib/docker/overlay2/9c2ee7f35ee8ad50b57e6f79bd07484ab8502b38f65be62f7da22aa17ad52520/diff:/var/lib/docker/overlay2/0409e37e42b600f640f0dd7f320ad774c53a9a1ea2b69c7b9e5a4d9ecf2ba313/diff:/var/lib/docker/overlay2/ced89883bd1dad20e468525391f821f1c860391096b96928b4efb4b5e01e4aa0/diff:/var/lib/docker/overlay2/88e8e038d0203f219a33ba03e9ff985919e02078d0089c4920535ff7c1b13dab/diff:/var/lib/docker/overlay2/3723db9987353c8ec19a072333cc50de892a7d8563f48b50c1df7328528747d3/diff",
+        "MergedDir": "/var/lib/docker/overlay2/3588aa423f76b8c96918b6e86572d47fd78de61b02b15d9ded57807bdfd79289/merged",
+        "UpperDir": "/var/lib/docker/overlay2/3588aa423f76b8c96918b6e86572d47fd78de61b02b15d9ded57807bdfd79289/diff",
+        "WorkDir": "/var/lib/docker/overlay2/3588aa423f76b8c96918b6e86572d47fd78de61b02b15d9ded57807bdfd79289/work"
+      },
+      "Name": "overlay2"
+    },
+    "Mounts": [],
+    "Config": {
+      "Hostname": "node01",
+      "Domainname": "",
+      "User": "",
+      "AttachStdin": false,
+      "AttachStdout": false,
+      "AttachStderr": false,
+      "ExposedPorts": {
+        "80/tcp": {}
+      },
+      "Tty": true,
+      "OpenStdin": true,
+      "StdinOnce": false,
+      "Env": [
+        "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+        "NGINX_VERSION=1.21.1",
+        "NJS_VERSION=0.6.1",
+        "PKG_RELEASE=1~buster"
+      ],
+      "Cmd": [
+        "nginx",
+        "-g",
+        "daemon off;"
+      ],
+      "Image": "nginx",
+      "Volumes": null,
+      "WorkingDir": "",
+      "Entrypoint": [
+        "/docker-entrypoint.sh"
+      ],
+      "OnBuild": null,
+      "Labels": {
+        "maintainer": "NGINX Docker Maintainers <docker-maint@nginx.com>"
+      },
+      "StopSignal": "SIGQUIT"
+    },
+    "NetworkSettings": {
+      "Bridge": "",
+      "SandboxID": "6838924e61291f4ae1bf4bd36e8f37dbe37586ecf24f7c85d1672281002c55e7",
+      "HairpinMode": false,
+      "LinkLocalIPv6Address": "",
+      "LinkLocalIPv6PrefixLen": 0,
+      "Ports": {},
+      "SandboxKey": "/var/run/docker/netns/default",
+      "SecondaryIPAddresses": null,
+      "SecondaryIPv6Addresses": null,
+      "EndpointID": "",
+      "Gateway": "",
+      "GlobalIPv6Address": "",
+      "GlobalIPv6PrefixLen": 0,
+      "IPAddress": "",
+      "IPPrefixLen": 0,
+      "IPv6Gateway": "",
+      "MacAddress": "",
+      "Networks": {
+        "host": {
+          "IPAMConfig": null,
+          "Links": null,
+          "Aliases": null,
+          "NetworkID": "e087559f25d13d9b2b0173ba1215cf8b64ce8c5d5e683f9393109216f4b76ad1",
+          "EndpointID": "fe15be2f894b1ac36a415d5731a5cd137ac8120ee6ef45dfc574a903351a51b1",
+          "Gateway": "",
+          "IPAddress": "",
+          "IPPrefixLen": 0,
+          "IPv6Gateway": "",
+          "GlobalIPv6Address": "",
+          "GlobalIPv6PrefixLen": 0,
+          "MacAddress": "",
+          "DriverOpts": null
+        }
+      }
+    }
+  }
+]
+
+vagrant@node01:~$ ip -c -br a
+lo               UNKNOWN        127.0.0.1/8 ::1/128 
+enp0s3           UP             10.0.2.15/24 fe80::bb:9ff:fe5e:a926/64 
+enp0s8           UP             10.20.20.110/24 fe80::a00:27ff:fe26:75b0/64 
+docker0          DOWN           172.17.0.1/16 fe80::42:87ff:feef:d665/64
+
+vagrant@node01:~$ docker container run -dit --name web2 --network bridge -p 81:80 nginx
+b11cfd89bb980842ea5316b321f423dcbd152a4f99fbbec5b4f1dd8579fd87bb
+
+vagrant@node01:~$ sudo ss -ntpl | egrep "80|81"
+LISTEN   0         128                 0.0.0.0:80               0.0.0.0:*        users:(("nginx",pid=15164,fd=7),("nginx",pid=15163,fd=7),("nginx",pid=15108,fd=7))
+LISTEN   0         128                 0.0.0.0:81               0.0.0.0:*        users:(("docker-proxy",pid=15224,fd=4))                                        
+LISTEN   0         128                    [::]:80                  [::]:*        users:(("nginx",pid=15164,fd=8),("nginx",pid=15163,fd=8),("nginx",pid=15108,fd=8))
+LISTEN   0         128                    [::]:81                  [::]:*        users:(("docker-proxy",pid=15230,fd=4)
+
+# 80
+vagrant@node01:~$ curl localhost:80
+<!DOCTYPE html>
+<html>
+<head>
+<title>Welcome to nginx!</title>
+<style>
+    body {
+        width: 35em;
+        margin: 0 auto;
+        font-family: Tahoma, Verdana, Arial, sans-serif;
+    }
+</style>
+</head>
+<body>
+<h1>Welcome to nginx!</h1>
+<p>If you see this page, the nginx web server is successfully installed and
+working. Further configuration is required.</p>
+
+<p>For online documentation and support please refer to
+<a href="http://nginx.org/">nginx.org</a>.<br/>
+Commercial support is available at
+<a href="http://nginx.com/">nginx.com</a>.</p>
+
+<p><em>Thank you for using nginx.</em></p>
+</body>
+</html>
+
+# 81
+vagrant@node01:~$ curl localhost:81
+<!DOCTYPE html>
+<html>
+<head>
+<title>Welcome to nginx!</title>
+<style>
+    body {
+        width: 35em;
+        margin: 0 auto;
+        font-family: Tahoma, Verdana, Arial, sans-serif;
+    }
+</style>
+</head>
+<body>
+<h1>Welcome to nginx!</h1>
+<p>If you see this page, the nginx web server is successfully installed and
+working. Further configuration is required.</p>
+
+<p>For online documentation and support please refer to
+<a href="http://nginx.org/">nginx.org</a>.<br/>
+Commercial support is available at
+<a href="http://nginx.com/">nginx.com</a>.</p>
+
+<p><em>Thank you for using nginx.</em></p>
+</body>
+</html>
+
+
+vagrant@node01:~$ docker container ls
+CONTAINER ID   IMAGE     COMMAND                  CREATED          STATUS          PORTS                               NAMES
+b11cfd89bb98   nginx     "/docker-entrypoint.…"   3 minutes ago    Up 3 minutes    0.0.0.0:81->80/tcp, :::81->80/tcp   web2
+30bc251e7246   nginx     "/docker-entrypoint.…"   11 minutes ago   Up 11 minutes                                       web
+
+vagrant@node01:~$ docker container rm -f web web2
+web
+web2
+
+# sem rede
+vagrant@node01:~$ docker container run -dit --name sem-rede --network none alpine ash
+
+vagrant@node01:~$ docker container exec sem-rede ip link show
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+
+vagrant@node01:~$ docker container exec sem-rede ip addr
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever   
+
+# revome tudo
+
+vagrant@node01:~$ docker container rm -f $(docker container ls -aq)
+750024b59b97
+
+# -h = hostname
+
+vagrant@node01:~$ docker container run -dit --name container1 -h servidor debian
+
+vagrant@node01:~$ docker container run -dit --name container2 -h cliente debian
+88af91e7444c099dac96f11aebf13184a3ed1e1ef8c005b1f7f2590481605a40
+
+vagrant@node01:~$ ip -c -br a
+lo               UNKNOWN        127.0.0.1/8 ::1/128 
+enp0s3           UP             10.0.2.15/24 fe80::bb:9ff:fe5e:a926/64 
+enp0s8           UP             10.20.20.110/24 fe80::a00:27ff:fe26:75b0/64 
+docker0          UP             172.17.0.1/16 fe80::42:87ff:feef:d665/64 
+veth0ecd3d6@if13 UP             fe80::c0a0:2fff:fe29:fa03/64 
+veth42e8822@if15 UP             fe80::24a0:31ff:fe08:9bed/64 
+
+# falhou ao rodar aqui
+
+vagrant@node01:~$ docker container exec container1 ip -c a show eth0
+OCI runtime exec failed: exec failed: container_linux.go:380: starting container process caused: exec: "ip": executable file not found in $PATH: unknown
+
+$ docker container exec container1 ip -c a show eth0
+$ docker container exec container2 ip -c a show eth0
+
+vagrant@node01:~$ ip -c -br a show docker0
+docker0          UP             172.17.0.1/16 fe80::42:87ff:feef:d665/64
+
+# testar conectividade # não funcinou mesmo erro acima
+
+vagrant@node01:~$ docker container exec container1 ping -c4 172.17.0.3
+
+vagrant@node01:~$ docker container exec container2 ping -c4 172.17.0.3
+
+vagrant@node01:~$ docker container exec container1 ping -c4 cliente
+
+vagrant@node01:~$ docker container exec container1 ping -c4 servidor
+
+# ****bridge não oferece resolução de DNS Interno*****
+
+# CONTAINER  REDE -->
+# DEFAULT BRIDGE NETWORK --> NÃO TEM DNS
+# USER-DEFINED BRIDGE NETWORK --> TEM DNS
+
+# LINUX
+
+vagrant@node01:~$ cat /etc/nsswitch.conf
+# /etc/nsswitch.conf
+#
+# Example configuration of GNU Name Service Switch functionality.
+# If you have the `glibc-doc-reference' and `info' packages installed, try:
+# `info libc "Name Service Switch"' for information about this file.
+
+passwd:         compat systemd
+group:          compat systemd
+shadow:         compat
+gshadow:        files
+
+hosts:          files dns
+networks:       files
+
+protocols:      db files
+services:       db files
+ethers:         db files
+rpc:            db files
+
+netgroup:       nis
+
+# /etc/hosts <-- OW, CONHECE O CLIENTE??? N CONHEÇO
+# DNS --> REDE BRIDGE
+
+vagrant@node01:~$ docker container rm -f container1 container2
+container1
+container2
+
+vagrant@node01:~$ docker container run -dit --name container1 -h servidor debian
+bc879298dc5d57bb3528255644fadd23d36160834f6af7de6ddce071d1607a04
+
+# Criei um container e linquei um container no outro servidor=container1
+
+vagrant@node01:~$ docker run -dit --name container2 --link container1:servidor -h cliente debian
+9ef8271f560cdaf6acf576dda3b1da944d824e02511f09cfb4c417ccbdfb1b68
+
+# erro igual acima
+vagrant@node01:~$ docker container exec container2 ping -c4 container1
+OCI runtime exec failed: exec failed: container_linux.go:380: starting container process caused: exec: "ping": executable file not found in $PATH: unknown
+
+vagrant@node01:~$ docker container rm -f container1 container2
+container1
+container2
+
+# Criar a rede User Defined Bridge de modo correto
+# USER-DEFINED BRIDGE ou REDE BRIDGE DEFINIDA PELO USUÁRIO
+ - DNS AUTOMATICO
+ - MELHOR ISOLAMENTO
+ - CONECTAR E DESCONECTAR ON-THE-FLY 
+ - SÃO CONFIGURAVEIS E PERSONALIZAVEIS
+
+vagrant@node01:~$ docker network create --driver bridge --subnet 172.20.0.0/16 dca-lan
+28d69a3664c6841662db41016949891444e06dbc61038e4c5004771507205ee3
+
+vagrant@node01:~$ docker network inspect dca-lan | jq
+[
+  {
+    "Name": "dca-lan",
+    "Id": "28d69a3664c6841662db41016949891444e06dbc61038e4c5004771507205ee3",
+    "Created": "2021-09-02T20:24:19.411059439Z",
+    "Scope": "local",
+    "Driver": "bridge",
+    "EnableIPv6": false,
+    "IPAM": {
+      "Driver": "default",
+      "Options": {},
+      "Config": [
+        {
+          "Subnet": "172.20.0.0/16"
+        }
+      ]
+    },
+    "Internal": false,
+    "Attachable": false,
+    "Ingress": false,
+    "ConfigFrom": {
+      "Network": ""
+    },
+    "ConfigOnly": false,
+    "Containers": {},
+    "Options": {},
+    "Labels": {}
+  }
+]
+
+vagrant@node01:~$ docker network ls
+NETWORK ID     NAME      DRIVER    SCOPE
+d812223dc08e   bridge    bridge    local
+28d69a3664c6   dca-lan   bridge    local
+e087559f25d1   host      host      local
+606862980ab8   none      null      local
+
+vagrant@node01:~$ docker container run -dit --name container1 -h servidor --network dca-lan debian
+9e04b76445e3e4f3803a255cfe173192d697d24c9f8a5c2504f8e40097e20e81
+
+vagrant@node01:~$ docker container run -dit --name container2 -h cliente --network dca-lan debian
+5ac02deb18282ada2dd0131d393284a8e741cfcb35dcdaf82b9fc0de14c6dbf0
+
+vagrant@node01:~$ docker network inspect dca-lan | jq
+[
+  {
+    "Name": "dca-lan",
+    "Id": "28d69a3664c6841662db41016949891444e06dbc61038e4c5004771507205ee3",
+    "Created": "2021-09-02T20:24:19.411059439Z",
+    "Scope": "local",
+    "Driver": "bridge",
+    "EnableIPv6": false,
+    "IPAM": {
+      "Driver": "default",
+      "Options": {},
+      "Config": [
+        {
+          "Subnet": "172.20.0.0/16"
+        }
+      ]
+    },
+    "Internal": false,
+    "Attachable": false,
+    "Ingress": false,
+    "ConfigFrom": {
+      "Network": ""
+    },
+    "ConfigOnly": false,
+    "Containers": {
+      "0266798de56890483b2545d9f581c5d7108f92079dc6b27c5d00df13756f2a06": {
+        "Name": "container1",
+        "EndpointID": "2ecd2b3e818a7c82a98270d9720710bf537ea5d776cb2d6179b36728294187c6",
+        "MacAddress": "02:42:ac:14:00:02",
+        "IPv4Address": "172.20.0.2/16",
+        "IPv6Address": ""
+      },
+      "5ac02deb18282ada2dd0131d393284a8e741cfcb35dcdaf82b9fc0de14c6dbf0": {
+        "Name": "container2",
+        "EndpointID": "93575be74cfbfaadcb15ca9706986f357983039a5653baaabc441cb7c7beaf4f",
+        "MacAddress": "02:42:ac:14:00:03",
+        "IPv4Address": "172.20.0.3/16",
+        "IPv6Address": ""
+      }
+    },
+    "Options": {},
+    "Labels": {}
+  }
+]
+
+# aquele erro
+
+vagrant@node01:~$ docker container exec container1 ping -c4 cliente
+OCI runtime exec failed: exec failed: container_linux.go:380: starting container process caused: exec: "ping": executable file not found in $PATH: unknown
+
+vagrant@node01:~$ docker container exec container1 ping -c4 container2
+OCI runtime exec failed: exec failed: container_linux.go:380: starting container process caused: exec: "ping": executable file not found in $PATH: unknown
+
+vagrant@node01:~$ docker container exec container2 ping -c4 servidor
+OCI runtime exec failed: exec failed: container_linux.go:380: starting container process caused: exec: "ping": executable file not found in $PATH: unknown
+
+vagrant@node01:~$ docker container exec container2 ping -c4 container1
+OCI runtime exec failed: exec failed: container_linux.go:380: starting container process caused: exec: "ping": executable file not found in $PATH: unknown
+
+# remover o cabo de rede do container
+
+vagrant@node01:~$ docker network disconnect dca-lan container2
+
+vagrant@node01:~$ docker network inspect dca-lan | jq
+[
+  {
+    "Name": "dca-lan",
+    "Id": "28d69a3664c6841662db41016949891444e06dbc61038e4c5004771507205ee3",
+    "Created": "2021-09-02T20:24:19.411059439Z",
+    "Scope": "local",
+    "Driver": "bridge",
+    "EnableIPv6": false,
+    "IPAM": {
+      "Driver": "default",
+      "Options": {},
+      "Config": [
+        {
+          "Subnet": "172.20.0.0/16"
+        }
+      ]
+    },
+    "Internal": false,
+    "Attachable": false,
+    "Ingress": false,
+    "ConfigFrom": {
+      "Network": ""
+    },
+    "ConfigOnly": false,
+    "Containers": {
+      "0266798de56890483b2545d9f581c5d7108f92079dc6b27c5d00df13756f2a06": {
+        "Name": "container1",
+        "EndpointID": "2ecd2b3e818a7c82a98270d9720710bf537ea5d776cb2d6179b36728294187c6",
+        "MacAddress": "02:42:ac:14:00:02",
+        "IPv4Address": "172.20.0.2/16",
+        "IPv6Address": ""
+      }
+    },
+    "Options": {},
+    "Labels": {}
+  }
+]
+
+# erro mas não pinga
+
+vagrant@node01:~$ docker container exec container1 ping -c4 container2
+OCI runtime exec failed: exec failed: container_linux.go:380: starting container process caused: exec: "ping": executable file not found in $PATH: unknown
+
+vagrant@node01:~$ docker container ls
+CONTAINER ID   IMAGE     COMMAND   CREATED         STATUS         PORTS     NAMES
+5ac02deb1828   debian    "bash"    7 minutes ago   Up 7 minutes             container2
+0266798de568   debian    "bash"    8 minutes ago   Up 8 minutes             container1
+
+# conectando o cabo novamente no container para tem acesso a rede com ip modifidado
+
+vagrant@node01:~$ docker network connect --ip 172.20.0.200 dca-lan container2
+
+vagrant@node01:~$ docker network inspect dca-lan | jq
+[
+  {
+    "Name": "dca-lan",
+    "Id": "28d69a3664c6841662db41016949891444e06dbc61038e4c5004771507205ee3",
+    "Created": "2021-09-02T20:24:19.411059439Z",
+    "Scope": "local",
+    "Driver": "bridge",
+    "EnableIPv6": false,
+    "IPAM": {
+      "Driver": "default",
+      "Options": {},
+      "Config": [
+        {
+          "Subnet": "172.20.0.0/16"
+        }
+      ]
+    },
+vagrant@node01:~$ docker network inspect dca-lan | jq
+[
+  {
+    "Name": "dca-lan",
+    "Id": "28d69a3664c6841662db41016949891444e06dbc61038e4c5004771507205ee3",
+    "Created": "2021-09-02T20:24:19.411059439Z",
+    "Scope": "local",
+    "Driver": "bridge",
+    "EnableIPv6": false,
+    "IPAM": {
+      "Driver": "default",
+      "Options": {},
+      "Config": [
+        {
+          "Subnet": "172.20.0.0/16"
+        }
+      ]
+    },
+    "Internal": false,
+    "Attachable": false,
+    "Ingress": false,
+    "ConfigFrom": {
+      "Network": ""
+    },
+    "ConfigOnly": false,
+    "Containers": {
+      "0266798de56890483b2545d9f581c5d7108f92079dc6b27c5d00df13756f2a06": {
+        "Name": "container1",
+        "EndpointID": "2ecd2b3e818a7c82a98270d9720710bf537ea5d776cb2d6179b36728294187c6",
+        "MacAddress": "02:42:ac:14:00:02",
+        "IPv4Address": "172.20.0.2/16",
+        "IPv6Address": ""
+      },
+      "5ac02deb18282ada2dd0131d393284a8e741cfcb35dcdaf82b9fc0de14c6dbf0": {
+        "Name": "container2",
+        "EndpointID": "4668c0065b8070c150f6cdc44e8ca4ed7d32d64e23e9713327f6112a64796c65",
+        "MacAddress": "02:42:ac:14:00:c8",
+        "IPv4Address": "172.20.0.200/16",
+        "IPv6Address": ""
+      }
+    },
+    "Options": {},
+    "Labels": {}
+  }
+]
+
+vagrant@node01:~$ docker container rm -f container1 container2
+container1
+container2
+
+vagrant@node01:~$ docker container run -dit --name container1 debian
+b9d51ba654e58a18692adc01909fe9faa1e2b965b109a16c5889ff47ff8a5046
+
+vagrant@node01:~$ docker container exec -it container1 cat /etc/resolv.conf
+# This file is managed by man:systemd-resolved(8). Do not edit.
+#
+# This is a dynamic resolv.conf file for connecting local clients directly to
+# all known uplink DNS servers. This file lists all configured search domains.
+#
+# Third party programs must not access this file directly, but only through the
+# symlink at /etc/resolv.conf. To manage man:resolv.conf(5) in a different way,
+# replace this symlink by a static file or a different symlink.
+#
+# See man:systemd-resolved.service(8) for details about the supported modes of
+# operation for /etc/resolv.conf.
+
+nameserver 10.0.2.3
+search nvta.corp
+
+# forma correta de alterar, geramente vc não precisa fazer isso
+# alterando o dns do container
+
+vagrant@node01:~$ docker container run -dit --name container2 --dns 8.8.8.8 debian
+f4d1bf3decbde70261fca8ff4864187085ebc05a1ac0e57987a48821b8bbd9f6
+
+vagrant@node01:~$ docker container exec -it container2 cat /etc/resolv.conf
+search nvta.corp
+nameserver 8.8.8.8
+
+vagrant@node01:~$ docker container rm -f container1 container2
+container1
+container2
+
+================================================================
+
+# AULA 07: Docker DCA 07 - Compose (docker-compose)
+
+https://www.youtube.com/watch?v=vEo7T3a6n30
+
+
