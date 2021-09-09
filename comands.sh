@@ -4785,11 +4785,7 @@ lo               UNKNOWN        127.0.0.1/8 ::1/128
 enp0s3           UP             10.0.2.15/24 fe80::bb:9ff:fe5e:a926/64 
 enp0s8           UP             10.20.20.100/24 fe80::a00:27ff:fe90:9379/64
 
-# criar dokcer swarm
 
-vagrant@master:~$ sudo usermod -aG docker vagrant 
-
-vagrant@master:~$ #docker swarm init --advertise-addr 10.20.20.100
 
 ┌─[orbite]@[Navita]:~/docker-dca
 └──> $ vim provision.sh 
@@ -4823,5 +4819,191 @@ vagrant destroy -f
 
 vagrant up master node01 node02 # operando
 
+# criar dokcer swarm
+
+vagrant@master:~$ #docker swarm init --advertise-addr 10.20.20.100
+
+vagrant@master:~$ docker swarm init --advertise-addr 10.20.20.100
+Swarm initialized: current node (t5f9scytait2ac5f0bo11czw4) is now a manager.
+
+To add a worker to this swarm, run the following command:
+
+    docker swarm join --token SWMTKN-1-38zk90yh6307mxbwxoyodrflvthrjck1z9wtqfg8g9pnz672vn-9te23e40q1yri7q5aauexb1sf 10.20.20.100:2377
+
+To add a manager to this swarm, run 'docker swarm join-token manager' and follow the instructions.
+
+# add node como worker
+
+┌─[orbite]@[Navita]:~/docker-dca
+└──> $ vagrant ssh node01
+
+vagrant@node01:~$ docker swarm join --token SWMTKN-1-38zk90yh6307mxbwxoyodrflvthrjck1z9wtqfg8g9pnz672vn-9te23e40q1yri7q5aauexb1sf 10.20.20.100:2377
+This node joined a swarm as a worker.
+
+# listar os nodes
+
+vagrant@master:~$ docker node ls
+ID                            HOSTNAME                    STATUS    AVAILABILITY   MANAGER STATUS   ENGINE VERSION
+t5f9scytait2ac5f0bo11czw4 *   master.docker-dca.example   Ready     Active         Leader           20.10.8
+yd4bobxw2dzyrfmbiwhtdci2s     node01.docker-dca.example   Ready     Active                          20.10.8
 
 
+# recuperando o comando pra add o node
+
+# manager
+vagrant@master:~$ docker swarm join-token manager
+To add a manager to this swarm, run the following command:
+
+    docker swarm join --token SWMTKN-1-38zk90yh6307mxbwxoyodrflvthrjck1z9wtqfg8g9pnz672vn-9l5qn329azwyt0q9mqopw13e0 10.20.20.100:2377
+
+# worker
+vagrant@master:~$ docker swarm join-token worker
+To add a worker to this swarm, run the following command:
+
+    docker swarm join --token SWMTKN-1-38zk90yh6307mxbwxoyodrflvthrjck1z9wtqfg8g9pnz672vn-9te23e40q1yri7q5aauexb1sf 10.20.20.100:2377
+
+[vagrant@node02 ~]$ docker swarm join --token SWMTKN-1-38zk90yh6307mxbwxoyodrflvthrjck1z9wtqfg8g9pnz672vn-9te23e40q1yri7q5aauexb1sf 10.20.20.100:2377
+This node joined a swarm as a worker.  
+
+vagrant@master:~$ docker node ls
+ID                            HOSTNAME                    STATUS    AVAILABILITY   MANAGER STATUS   ENGINE VERSION
+t5f9scytait2ac5f0bo11czw4 *   master.docker-dca.example   Ready     Active         Leader           20.10.8
+yd4bobxw2dzyrfmbiwhtdci2s     node01.docker-dca.example   Ready     Active                          20.10.8
+c4v1tf3jjhyhtwd8wxqn2a1l3     node02.docker-dca.example   Ready     Active                          20.10.8
+
+# promovendo um node
+vagrant@master:~$ docker node promote node01.docker-dca.example
+Node node01.docker-dca.example promoted to a manager in the swarm.
+
+vagrant@master:~$ docker node ls
+ID                            HOSTNAME                    STATUS    AVAILABILITY   MANAGER STATUS   ENGINE VERSION
+t5f9scytait2ac5f0bo11czw4 *   master.docker-dca.example   Ready     Active         Leader           20.10.8
+yd4bobxw2dzyrfmbiwhtdci2s     node01.docker-dca.example   Ready     Active         Reachable        20.10.8
+c4v1tf3jjhyhtwd8wxqn2a1l3     node02.docker-dca.example   Ready     Active                          20.10.8
+
+vagrant@master:~$ watch docker node ls
+
+# simular uma falha
+ir no virtual box
+node01 --> close --> power off
+
+vagrant@master:~$ docker node ls
+ID                            HOSTNAME                    STATUS    AVAILABILITY   MANAGER STATUS   ENGINE VERSION
+t5f9scytait2ac5f0bo11czw4 *   master.docker-dca.example   Ready     Active         Leader           20.10.8
+yd4bobxw2dzyrfmbiwhtdci2s     node01.docker-dca.example   Ready     Active         Unreachable      20.10.8
+c4v1tf3jjhyhtwd8wxqn2a1l3     node02.docker-dca.example   Ready     Active                          20.10.8
+
+##
+Error response from daemon: rpc error: code = Unknown desc = The swarm does not have a leader. It s possible that too few managers are online. Make sure more than half of the manage
+rs are online.
+
+obs: perdi meu cluster
+
+##
+
+# subi a node01 voltou o cluster
+
+Every 2.0s: docker node ls                                                                                                        master.docker-dca.example: Thu Sep  9 20:00:22 2021
+
+ID                            HOSTNAME                    STATUS    AVAILABILITY   MANAGER STATUS   ENGINE VERSION
+t5f9scytait2ac5f0bo11czw4 *   master.docker-dca.example   Ready     Active         Leader           20.10.8
+yd4bobxw2dzyrfmbiwhtdci2s     node01.docker-dca.example   Ready     Active         Reachable        20.10.8
+c4v1tf3jjhyhtwd8wxqn2a1l3     node02.docker-dca.example   Ready     Active                          20.10.8
+
+# promote node02
+
+vagrant@master:~$ docker node promote node02.docker-dca.example
+Node node02.docker-dca.example promoted to a manager in the swarm.
+
+Every 2.0s: docker node ls                                                                                                        master.docker-dca.example: Thu Sep  9 20:04:54 2021
+
+ID                            HOSTNAME                    STATUS    AVAILABILITY   MANAGER STATUS   ENGINE VERSION
+t5f9scytait2ac5f0bo11czw4 *   master.docker-dca.example   Ready     Active         Leader           20.10.8
+yd4bobxw2dzyrfmbiwhtdci2s     node01.docker-dca.example   Ready     Active         Reachable        20.10.8
+c4v1tf3jjhyhtwd8wxqn2a1l3     node02.docker-dca.example   Ready     Active         Reachable        20.10.8
+
+vagrant@master:~$ docker node ls
+ID                            HOSTNAME                    STATUS    AVAILABILITY   MANAGER STATUS   ENGINE VERSION
+t5f9scytait2ac5f0bo11czw4 *   master.docker-dca.example   Ready     Active         Leader           20.10.8
+yd4bobxw2dzyrfmbiwhtdci2s     node01.docker-dca.example   Ready     Active         Reachable        20.10.8
+c4v1tf3jjhyhtwd8wxqn2a1l3     node02.docker-dca.example   Ready     Active         Reachable        20.10.8
+
+# simular uma falha da forma correta
+
+vagrant@master:~$ watch docker node ls
+
+Every 2.0s: docker node ls                                                                                                        master.docker-dca.example: Thu Sep  9 20:06:27 2021
+
+ID                            HOSTNAME                    STATUS    AVAILABILITY   MANAGER STATUS   ENGINE VERSION
+t5f9scytait2ac5f0bo11czw4 *   master.docker-dca.example   Ready     Active         Leader           20.10.8
+yd4bobxw2dzyrfmbiwhtdci2s     node01.docker-dca.example   Ready     Active         Reachable        20.10.8
+c4v1tf3jjhyhtwd8wxqn2a1l3     node02.docker-dca.example   Ready     Active         Reachable        20.10.8
+
+# derrubei a master
+yd4bobxw2dzyrfmbiwhtdci2s     node01.docker-dca.example   Ready     Active         Reachable        20.10.8
+c4v1tf3jjhyhtwd8wxqn2a1l3     node02.docker-dca.example   Ready     Active         Reachable        20.10.8
+
+
+Every 2.0s: docker node ls                                                                                                                                   Thu Sep  9 20:08:43 2021
+
+ID                            HOSTNAME                    STATUS    AVAILABILITY   MANAGER STATUS   ENGINE VERSION
+t5f9scytait2ac5f0bo11czw4     master.docker-dca.example   Down      Active         Unreachable      20.10.8
+yd4bobxw2dzyrfmbiwhtdci2s     node01.docker-dca.example   Ready     Active         Reachable        20.10.8
+c4v1tf3jjhyhtwd8wxqn2a1l3 *   node02.docker-dca.example   Ready     Active         Leader           20.10.8
+
+┌─[orbite]@[Navita]:~/docker-dca
+└──> $ vagrant up master
+
+Every 2.0s: docker node ls                                                                                                                                   Thu Sep  9 20:10:34 2021
+
+ID                            HOSTNAME                    STATUS    AVAILABILITY   MANAGER STATUS   ENGINE VERSION
+t5f9scytait2ac5f0bo11czw4     master.docker-dca.example   Ready     Active         Reachable        20.10.8
+yd4bobxw2dzyrfmbiwhtdci2s     node01.docker-dca.example   Ready     Active         Reachable        20.10.8
+c4v1tf3jjhyhtwd8wxqn2a1l3 *   node02.docker-dca.example   Ready     Active         Leader           20.10.8
+
+┌─[orbite]@[Navita]:~/docker-dca
+└──> $ vagrant halt node02
+
+Every 2.0s: docker node ls                                                                                                        node01.docker-dca.example: Thu Sep  9 20:12:20 2021
+
+ID                            HOSTNAME                    STATUS    AVAILABILITY   MANAGER STATUS   ENGINE VERSION
+t5f9scytait2ac5f0bo11czw4     master.docker-dca.example   Ready     Active         Leader           20.10.8
+yd4bobxw2dzyrfmbiwhtdci2s *   node01.docker-dca.example   Ready     Active         Reachable        20.10.8
+c4v1tf3jjhyhtwd8wxqn2a1l3     node02.docker-dca.example   Unknown   Active         Unreachable      20.10.8
+
+# nosso cenário queremos:
+1 MANAGER
+2 WORKERS
+
+# NODE DEMOTE
+vagrant@master:~$ docker node demote node01.docker-dca.example
+Manager node01.docker-dca.example demoted in the swarm.
+
+vagrant@master:~$ docker node demote node02.docker-dca.example
+Manager node02.docker-dca.example demoted in the swarm.
+
+# WORKERS
+vagrant@master:~$ docker node ls
+ID                            HOSTNAME                    STATUS    AVAILABILITY   MANAGER STATUS   ENGINE VERSION
+t5f9scytait2ac5f0bo11czw4 *   master.docker-dca.example   Ready     Active         Leader           20.10.8
+yd4bobxw2dzyrfmbiwhtdci2s     node01.docker-dca.example   Ready     Active                          20.10.8
+c4v1tf3jjhyhtwd8wxqn2a1l3     node02.docker-dca.example   Ready     Active                          20.10.8
+
+┌─[orbite]@[Navita]:~/docker-dca
+└──> $ vagrant halt
+
+-----------------------------------------------
+
+# SERVICES --> SERVICO --> ESTADO DESEJADO ( PÃO COM MANTEIGA E MORTANDELA )
+# TASKS    --> TAREFAS
+
+1. Comprar o PÃO
+2. Comprar a Manteiga e MORTANDELA
+3. Cortar o PÃO
+4. Passar Manteiga e MORTANDELA
+
+# TASK --> UNIDADE ATOMICA  AGENDADA EM UM SWARM
+# TASK -----> ASSIGNED -----> PREPARED -----> RUNNING
+
+# SERVIÇOES REPLICADOS X GLOBAIS
+# REPLICADO --> 
