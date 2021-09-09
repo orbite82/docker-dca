@@ -22,6 +22,8 @@ Vagrant.configure("2") do |config|
         vb.customize ["modifyvm", :id, "--groups", "/Docker-DCA"]
       end
       machine.vm.provision "shell", path: "provision.sh"
+      machine.vm.provision "shell", inline: "hostnamectl set-hostname #{name}.docker-dca.example"
+      machine.vm.provision "shell", inline: "curl -fSsL https://get.docker.com | bash"
     end
   end
 end

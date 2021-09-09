@@ -4662,3 +4662,9 @@ Stopping and removing webserver_webserver_4 ... done
 
 # traefik compose
 
+deu erro hahaha mas ok
+================================================================
+
+# AULA 8 : Docker DCA 08 - Raft Consensus & Docker Swarm
+
+https://www.youtube.com/watch?v=2M-e3Mj8vP0&t=33s
