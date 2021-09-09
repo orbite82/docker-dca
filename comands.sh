@@ -4704,3 +4704,118 @@ echo '10.20.20.120 node02.docker-dca.example'>> /etc/hosts
 echo '10.20.20.200 registry.docker-dca.example' >> /etc/hosts
 
 curl -fsSL https:get.docker.com | bash
+
+┌─[orbite]@[Navita]:~/docker-dca
+└──> $ vagrant destroy -f
+==> registry: VM not created. Moving on...
+==> node02: VM not created. Moving on...
+==> node01: VM not created. Moving on...
+==> master: VM not created. Moving on...
+
+┌─[orbite]@[Navita]:~/docker-dca
+└──> $ vagrant up master node01 node02
+
+# DOCKER SWARM --> Orquestração de Containers
+
+# Cluster --> Conjunto de Computadores que trabalham em grupo de forma a ser visto como sistema único
+
+32 Cores - 256 GB RAM $$$$$$$$$ --> alto custo pra ter uma máquina
+
+# Em Cluster
+4 Cores - 8 GB $$$ (x10)
+
+# HORIZONTAL SCALING --> ESCALONAMENTO HORIZONTAL
+Máquinas "Menores" lado a lado para trabalharem com 1 proposito
+
+# VERTICAL SCALING --> ESCALONAMENTO VERTICAL
+Maquinas "Maiores" + PROCESSADOR + DISCO + RAM
+
+# Node (Nó) --> Um elemento computacional de um cluster
+# PRIMARIO / SECUNDARIO (Master / Follower) ou (Manager / Worker) termo slave foi abolido!
+
+# MASTER --> MANAGER
+# NODE01 --> WORKER
+# NODE02 --> WORKER
+
+
+# NODES --> termos
+
+Main       / Secondary
+Conductor  / Follower
+Leader     / Follower
+Host       / Client
+Sender     / Receiver
+Producer   / Consumer 
+Primary    / Replicas
+Manager    / Worker
+
+# RAFT CONSENSUS
+
+RAFT = CANOA / JANGADA
+CONSENSUS = CONSENSU 
+
+?COM QUANTOS PAUS SE FAZ UMA JANGADA?
+
+JANGADA =  3 TORAS DE MADEIRA
+
+SISTEMA UNICO --> ARMAZENA UM VALOR UNICO (Consenso)
+
+RAFT - Tolera até (N-1)/2 falhas --> N=1 0/2 --> 0 # NÃO USAR
+     - Quarum de (N/2)+1         --> N=2 1/2 --> 0.5 = 0 # NÃO USAR
+                                 --> N=3 2/2 --> 1 # ACEITAVEL OU IDEAL     =  RAFT CONSENSUS --> 3 TORAS = 3 NOS
+                                 --> N=4 3/2 --> 1.5 = 1  # NÃO USAR                               
+                                 --> N=5 4/2 --> 2  # IDEAL MASTER POR QUESTÃO DE DESEMPENHO DE REDE!
+                                 --> N=6 5/2 --> 2.5 = 2 # NÃO USAR
+                                 --> N=7 6/2 --> 3 # DA PRA ACEITAR
+# QUANTIDADE DE MASTER
+
+[1] 3 5 [7] <---- MASTER        1 = ESTUDOS                         
+
+
+# ETCD --> BANCO DE DADOS DO K8S                                 
+
+
+# SPLIT BRAIN --> CEREBRO PARTIDO       
+
+┌─[orbite]@[Navita]:~/docker-dca
+└──> $ vagrant ssh master
+
+vagrant@master:~$ ip -c -br a
+lo               UNKNOWN        127.0.0.1/8 ::1/128 
+enp0s3           UP             10.0.2.15/24 fe80::bb:9ff:fe5e:a926/64 
+enp0s8           UP             10.20.20.100/24 fe80::a00:27ff:fe90:9379/64
+
+# criar dokcer swarm
+
+vagrant@master:~$ sudo usermod -aG docker vagrant 
+
+vagrant@master:~$ #docker swarm init --advertise-addr 10.20.20.100
+
+┌─[orbite]@[Navita]:~/docker-dca
+└──> $ vim provision.sh 
+
+# Garantindo as chaves
+#  ssh-keygen -q -t rsa -f key -N ''
+
+KEY_PATH='/vagrant/files'
+mkdir -p /root/.ssh
+cp $KEY_PATH/key /root/.ssh/id_rsa
+cp $KEY_PATH/key.pub /root/.ssh/id_rsa.pub
+cp $KEY_PATH/key.pub /root/.ssh/authorized_keys
+chmod 400 /root/.ssh/id_rsa*
+cat /root/.ssh/id_rsa.pub >> /home/vagrant/.ssh/authorized_keys
+
+# Garantindo os hosts
+HOSTS=$(head -n7 /etc/hosts)
+echo -e "$HOSTS" > /etc/hosts
+echo '10.20.20.100 master.docker-dca.example' >> /etc/hosts
+echo '10.20.20.110 node01.docker-dca.example' >> /etc/hosts
+echo '10.20.20.120 node02.docker-dca.example'>> /etc/hosts
+echo '10.20.20.200 registry.docker-dca.example' >> /etc/hosts
+
+curl -fsSL https:get.docker.com | bash
+usermod -aG dokcer vagrant
+~                               
+
+
+

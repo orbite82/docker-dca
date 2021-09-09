@@ -18,3 +18,4 @@ echo '10.20.20.120 node02.docker-dca.example'>> /etc/hosts
 echo '10.20.20.200 registry.docker-dca.example' >> /etc/hosts
 
 curl -fsSL https:get.docker.com | bash
+usermod -aG dokcer vagrant
