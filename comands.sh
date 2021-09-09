@@ -4668,3 +4668,39 @@ deu erro hahaha mas ok
 # AULA 8 : Docker DCA 08 - Raft Consensus & Docker Swarm
 
 https://www.youtube.com/watch?v=2M-e3Mj8vP0&t=33s
+
+┌─[orbite]@[Navita]:~/docker-dca
+└──> $ vim Vagrantfile
+
+# aletrado no Vagrantfile
+ end
+      machine.vm.provision "shell", path: "provision.sh"
+      machine.vm.provision "shell", inline: "hostnamectl set-hostname #{name}.docker-dca.example"
+    end
+  end
+end
+
+
+┌─[orbite]@[Navita]:~/docker-dca
+└──> $ vim provision.sh 
+
+# Garantindo as chaves
+#  ssh-keygen -q -t rsa -f key -N ''
+
+KEY_PATH='/vagrant/files'
+mkdir -p /root/.ssh
+cp $KEY_PATH/key /root/.ssh/id_rsa
+cp $KEY_PATH/key.pub /root/.ssh/id_rsa.pub
+cp $KEY_PATH/key.pub /root/.ssh/authorized_keys
+chmod 400 /root/.ssh/id_rsa*
+cat /root/.ssh/id_rsa.pub >> /home/vagrant/.ssh/authorized_keys
+
+# Garantindo os hosts
+HOSTS=$(head -n7 /etc/hosts)
+echo -e "$HOSTS" > /etc/hosts
+echo '10.20.20.100 master.docker-dca.example' >> /etc/hosts
+echo '10.20.20.110 node01.docker-dca.example' >> /etc/hosts
+echo '10.20.20.120 node02.docker-dca.example'>> /etc/hosts
+echo '10.20.20.200 registry.docker-dca.example' >> /etc/hosts
+
+curl -fsSL https:get.docker.com | bash
