@@ -150,6 +150,8 @@ sudo apt-get update -y
 
 sudo apt-get install docker-ce docker-ce-cli containerd.io -y
 
+sudo apt-get update -y
+
 echo $USER
 
 sudo usermod -aG docker $USER
@@ -4221,4 +4223,442 @@ container2
 
 https://www.youtube.com/watch?v=vEo7T3a6n30
 
+┌─[orbite]@[Navita]:~/docker-dca
+└──> $ vagrant up node01
+
+# 3 passos (Docker Compose)
+#   1- Define o ambiente com um dockerfile, para uma melhor reprodução
+#   2- Define os serviços que serão executados no arquivo docker-compose.yml
+#   3- Executar o comando docker-compose up
+
+# docker-compose.yml --> Definir a estrutura e como serão executados os containers
+
+Compose and Docker compatibility matrix
+
+# link: https://docs.docker.com/compose/compose-file/ 
+
+Compose file format	Docker Engine release
+Compose specification	19.03.0+
+3.8	--> 19.03.0+
+3.7	--> 18.06.0+
+3.6	--> 18.02.0+
+3.5	--> 17.12.0+
+3.4	--> 17.09.0+
+3.3	--> 17.06.0+
+3.2	--> 17.04.0+
+3.1	--> 1.13.1+
+3.0	--> 1.13.0+
+2.4	--> 17.12.0+
+2.3	--> 17.06.0+
+2.2	--> 1.13.0+
+2.1	--> 1.12.0+
+2.0	--> 1.10.0+
+
+# verificar versão
+
+docker system info
+
+vagrant@node01:~$ docker system info | head -n5
+Client:
+ Context:    default
+ Debug Mode: false
+ Plugins:
+  app: Docker App (Docker Inc., v0.9.1-beta3)
+
+  vagrant@node01:~$ docker system info | head -n10
+Client:
+ Context:    default
+ Debug Mode: false
+ Plugins:
+  app: Docker App (Docker Inc., v0.9.1-beta3)
+  buildx: Build with BuildKit (Docker Inc., v0.6.1-docker)
+  scan: Docker Scan (Docker Inc., v0.8.0)
+
+Server:
+ Containers: 0
+
+vagrant@node01:~$ docker --version
+Docker version 20.10.8, build 3967b7d 
+
+vagrant@node01:~$ docker system info | grep Version
+ Server Version: 20.10.8
+ Cgroup Version: 1
+WARNING: No swap limit support
+ Kernel Version: 4.15.0-154-generic
+
+# Install docker-compose
+
+https://docs.docker.com/compose/install/
+
+sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+
+vagrant@node01:~$ vim docker-compose.yml
+
+vagrant@node01:~$ sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100   633  100   633    0     0   7193      0 --:--:-- --:--:-- --:--:--  7193
+100 12.1M  100 12.1M    0     0  9495k      0  0:00:01  0:00:01 --:--:-- 10.1M
+
+vagrant@node01:~$ sudo chmod +x /usr/local/bin/docker-compose
+
+vagrant@node01:~$ docker-compose --version
+docker-compose version 1.29.2, build 5becea4c
+
+vagrant@node01:~$ docker image ls
+REPOSITORY   TAG       IMAGE ID       CREATED       SIZE
+alpine       latest    14119a10abf4   7 days ago    5.6MB
+nginx        latest    dd34e67e3371   2 weeks ago   133MB
+debian       latest    fe3c5de03486   2 weeks ago   124MB
+
+vagrant@node01:~$ mkdir -p ~/dockerfiles/webserver
+vagrant@node01:~$ cd dockerfiles/webserver/
+vagrant@node01:~/dockerfiles/webserver$ ls
+vagrant@node01:~/dockerfiles/webserver$ vim Dockerfile
+
+# modo padrão sem compose
+# docker container run -dit --name <NOME> -p 80:80 <IMAGEM>
+
+FROM    debian
+RUN     apt-get update; \
+        apt-get install -yd \
+        wget \
+        git \
+        apache2
+EXPOSE  80
+CMD     ["apachectl", "-D", "FOREGROUND"]
+
+vagrant@node01:~/dockerfiles/webserver$ vim docker-compose.yml
+
+# COMENTARIOS PARA REFERENCIA
+#
+# version -->  define a versao do arquivo compose
+# services --> define uma seçao para os serviços
+# build -->    define o local do dockerfile  =  ( docker image build -t imagem_webserver . )
+# hostname --> define o hostname do container
+# ports -->    define quais portas serao publicadas
+# restart -->  define uma politica de restart do container
+#
+# docker container run -dit --name <NOME> -p 80:80 <IMAGEM>
+# docker container run -dit --name webserver --hostname webserver -p 80:80 imagem_webserver
+# ------------------------------------------------------------------ 
+#
+# DOCKER-COMPOSE: -->
+
+version:  '3.3'
+
+services:
+  webserver:
+    build: . # passa o path do seu diretorio, no nosso caso e neste local entao fica com .
+    hostname: webserver
+    ports:
+      - 80:80
+    restart: always # opçoes: --> unless-stopped, always, on-failure, no = (DEFAULT) 
+
+# subir docker-compose
+
+vagrant@node01:~/dockerfiles/webserver$ docker-compose up -d
+
+FROM    debian
+RUN     apt-get update; \
+        apt-get install wget git apache2 -yq
+EXPOSE  80
+CMD     ["apachectl", "-D", "FOREGROUND"]
+
+
+# precisei recriar a node01 e resintalar e os ajuste acima do Dockerfile
+
+vagrant@node01:~/dockerfiles/webserver$ docker ps
+CONTAINER ID   IMAGE                 COMMAND                  CREATED         STATUS         PORTS                               NAMES
+70cc7319444c   webserver_webserver   "apachectl -D FOREGR…"   6 seconds ago   Up 4 seconds   0.0.0.0:80->80/tcp, :::80->80/tcp   webserver_webserver_1
+
+# listar no docker-compose
+docker-compose ps
+
+vagrant@node01:~/dockerfiles/webserver$ docker-compose ps
+        Name                    Command           State                Ports              
+------------------------------------------------------------------------------------------
+webserver_webserver_1   apachectl -D FOREGROUND   Up      0.0.0.0:80->80/tcp,:::80->80/tcp
+
+vagrant@node01:~/dockerfiles/webserver$ ip -c -br a
+lo               UNKNOWN        127.0.0.1/8 ::1/128 
+enp0s3           UP             10.0.2.15/24 fe80::bb:9ff:fe5e:a926/64 
+enp0s8           UP             10.20.20.110/24 fe80::a00:27ff:fea9:740d/64 
+docker0          DOWN           172.17.0.1/16 fe80::42:ffff:feb9:fe95/64 
+br-24390ea14227  UP             172.18.0.1/16 fe80::42:98ff:fe6e:9d5f/64 
+veth1552572@if8  UP             fe80::b85b:86ff:fe76:720/64 
+
+vagrant@node01:~/dockerfiles/webserver$ docker-compose stop
+Stopping webserver_webserver_1 ... done
+
+vagrant@node01:~/dockerfiles/webserver$ docker-compose start
+Starting webserver ... done
+
+vagrant@node01:~/dockerfiles/webserver$ curl localhost
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>Apache2 Debian Default Page: It works</title>
+    <style type="text/css" media="screen">
+  * {
+    margin: 0px 0px 0px 0px;
+    padding: 0px 0px 0px 0px;
+  }
+
+  body, html {
+    padding: 3px 3px 3px 3px;
+
+    background-color: #D8DBE2;
+
+    font-family: Verdana, sans-serif;
+    font-size: 11pt;
+    text-align: center;
+  }
+
+
+vagrant@node01:~/dockerfiles/webserver$ curl localhost | head -5
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100 10701  100 10701    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+   0     0   696k      0 --:--:-- --:--:-- --:--:--  696k
+(23) Failed writing body
+
+# Estamos trabalhando uma camada acima dos containers com Compose
+# Estamos trabalhando com serviços, ele é composto de um container, services : ele cria uma nova rede, garante uma segurança minima tbm
+# Uma camada a mais de segurança
+# Compose sempre cria um rede bridge não padrão, resolução dns!
+
+vagrant@node01:~/dockerfiles/webserver$ docker network ls
+NETWORK ID     NAME                DRIVER    SCOPE
+03b330c9c7b5   bridge              bridge    local
+2a31c616df2f   host                host      local
+109ced2f11d1   none                null      local
+24390ea14227   webserver_default   bridge    local
+
+# docker-compose down --> destroi o container
+
+vagrant@node01:~/dockerfiles/webserver$ docker-compose down
+Removing webserver_webserver_1 ... done
+Removing network webserver_default
+
+vagrant@node01:~/dockerfiles/webserver$ mkdir html
+vagrant@node01:~/dockerfiles/webserver$ echo "<h1> Curso Docker DCA 100% Gratuito - youtube.com/caiodelgadonew</h1>" > html/index.html
+
+vagrant@node01:~/dockerfiles/webserver$ tree
+.
+├── Dockerfile
+├── docker-compose.yml
+└── html
+    └── index.html
+
+1 directory, 3 files
+
+# add um volume
+
+vagrant@node01:~/dockerfiles/webserver$ vim docker-compose.yml
+
+# COMENTARIOS PARA REFERENCIA
+#
+# version -->  define a versao do arquivo compose
+# services --> define uma seçao para os serviços
+# build -->    define o local do dockerfile  =  ( docker image build -t imagem_webserver . )
+# hostname --> define o hostname do container
+# ports -->    define quais portas serao publicadas
+# restart -->  define uma politica de restart do container
+#
+# docker container run -dit --name <NOME> -p 80:80 <IMAGEM>
+# docker container run -dit --name webserver --hostname webserver -p 80:80 imagem_webserver
+# ------------------------------------------------------------------ 
+#
+# DOCKER-COMPOSE: -->
+
+version:  '3.3'
+
+services:
+  webserver:
+    build: . # passa o path do seu diretorio, no nosso caso e neste local entao fica com .
+    hostname: webserver
+    ports:
+      - 80:80
+    restart: always # opçoes: --> unless-stopped, always, on-failure, no = (DEFAULT)
+    volumes:
+      - $PWD/html:/var/www/html
+        # PWD = Print Working Directory    
+
+
+vagrant@node01:~/dockerfiles/webserver$ pwd
+/home/vagrant/dockerfiles/webserver            
+~                                          
+
+# variavel de ambiente do linux $PWD
+
+vagrant@node01:~/dockerfiles/webserver$ echo $PWD
+/home/vagrant/dockerfiles/webserver
+
+vagrant@node01:~/dockerfiles/webserver$ docker-compose up -d
+Creating network "webserver_default" with the default driver
+Creating webserver_webserver_1 ... done
+
+# teste http://10.20.20.110/
+
+vagrant@node01:~/dockerfiles/webserver$ ip -c -br a
+lo               UNKNOWN        127.0.0.1/8 ::1/128 
+enp0s3           UP             10.0.2.15/24 fe80::bb:9ff:fe5e:a926/64 
+enp0s8           UP             10.20.20.110/24 fe80::a00:27ff:fea9:740d/64 
+docker0          DOWN           172.17.0.1/16 fe80::42:ffff:feb9:fe95/64 
+br-a1aeac844b9d  UP             172.19.0.1/16 fe80::42:edff:fe8d:d5dc/64 
+veth414a606@if13 UP             fe80::5cb3:3bff:fe44:fa90/64 
+
+# jogar no navegador
+
+http://10.20.20.110/
+
+vai aparecer:
+Curso Docker DCA 100% Gratuito - youtube.com/caiodelgadonew
+
+# Rodar imagem do docker hub
+# EX: build pode ser substituido por --> image: image: caiodelgadonew/webserver:apache2
+# não executar essa imagem pois ela foi deletada
+
+version:  '3.3'
+
+services:
+  webserver:
+    image: caiodelgadonew/webserver:apache2
+    #build: . # passa o path do seu diretorio, no nosso caso e neste local entao fica com .
+    hostname: webserver
+    ports:
+      - 80:80
+    restart: always # opçoes: --> unless-stopped, always, on-failure, no = (DEFAULT)
+    volumes:
+      - $PWD/html:/var/www/html
+        # PWD = Print Working Directory 
+
+vagrant@node01:~/dockerfiles/webserver$ docker-compose down
+Stopping webserver_webserver_1 ... done
+Removing webserver_webserver_1 ... done
+Removing network webserver_default  
+
+vagrant@node01:~/dockerfiles/webserver$ vim wordpress-compose.yml
+
+version: '3'
+
+# docker volume create mysql_db
+volumes:
+  mysql_db:
+
+# docker network create wordpress_net
+networks:
+  wordpress_net:
+
+services:
+# docker container run --name wordpress -p 80:80 -e VARIAVEIS:VALORES wordpress        
+# docker cotainer run --name wordpress -p 80:80 -e WORDPRESS_DB_HOST=db -e WORDPRESS_DB_USER=wpuser -e WORDPRESS_DB_PASSWORD=caiodelgadonew@youtube -e WORDPRESS_DB_NAME=wordpress wordpress(image)
+  wordpress:
+    image: wordpress
+    restart: always
+    ports:
+      - 80:80
+    environment:
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_USER: wpuser
+      WORDPRESS_DB_PASSWORD: caiodelgadonew@youtube
+      WORDPRESS_DB_NAME: wordpress
+
+      # docker container run --hostname db -p 3306:3306 -v mysql_db:/var/lib/mysql -e MYSQL_DATABASE=wordpress -e MYSQL_USER=user -e MYSQL_PASSWORD=caiodelgadonew@youtube -e MYSQL_RANDOM_ROOT_PASSWORD='1' mysql:5.7
+
+    networks:
+      - wordpress_net
+    depends_on:
+      - db  
+
+  db:
+    image: mysql:5.7
+    restart: always
+    volumes:
+      - mysql_db:/var/lib/mysql
+    #ports: opçcional pois vou deixar ele na mesma rede
+      #- 3306:3306  
+    environment:
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: wpuser
+      MYSQL_PASSWORD: Arthur
+      MYSQL_RANDOM_ROOT_PASSWORD: '1'
+    networks:
+      - wordpress_net
+
+# default ele sempre vai buscar o docker-compose mas para apontar para um arquivo pesonalizado com seu nome diferente -->
+# -f informa qual arquivo do compose eu quero subir: wordpress-compose.yml
+docker-compose-f wordpress-compose.yml up -d  
+
+# comando pra listar docker-compose personalizado com nome
+vagrant@node01:~/dockerfiles/webserver$ docker-compose -f wordpress-compose.yml ps
+        Name                       Command                 State                   Ports              
+------------------------------------------------------------------------------------------------------
+webserver_db_1          docker-entrypoint.sh mysqld      Restarting                                   
+webserver_wordpress_1   docker-entrypoint.sh apach ...   Up           0.0.0.0:80->80/tcp,:::80->80/tcp
+
+
+10.20.20.100    master.docker-dca.example
+10.20.20.110    node01.docker-dca.example
+10.20.20.120    node02.docker-dca.example
+10.20.20.200    registry.docker-dca.example
+127.0.1.1       ubuntu-bionic   ubuntu-bionic
+
+
+vagrant@node01:~/dockerfiles/webserver$ vim docker-compose.yml
+vagrant@node01:~/dockerfiles/webserver$ docker-compose up -d
+
+#replicas
+
+version:  '3.9'
+  
+services:
+  webserver:
+    build: . # passa o path do seu diretorio, no nosso caso e neste local entao fica com .
+    hostname: webserver
+    #ports:
+    # - 80:80
+    deploy:
+      replicas: 1
+    restart: on-failure # opçoes: --> unless-stopped, always, on-failure, no = (DEFAULT)
+    volumes:
+      - $PWD/html:/var/www/html
+        # PWD = Print Working Directory
+
+# aumentando pra 3
+
+vagrant@node01:~/dockerfiles/webserver$ docker-compose up -d
+WARNING: Found orphan containers (webserver_db_1, webserver_wordpress_1) for this project. If you removed or renamed this service in your compose file, you can run this command with the --remove-orphans flag to clean it up.
+Creating webserver_webserver_2 ... done
+Creating webserver_webserver_3 ... done
+
+# ou scale
+vagrant@node01:~/dockerfiles/webserver$ docker-compose scale webserver=4
+WARNING: The scale command is deprecated. Use the up command with the --scale flag instead.
+Creating webserver_webserver_4 ... done
+
+vagrant@node01:~/dockerfiles/webserver$ docker-compose ps
+        Name                    Command           State   Ports 
+----------------------------------------------------------------
+webserver_webserver_1   apachectl -D FOREGROUND   Up      80/tcp
+webserver_webserver_2   apachectl -D FOREGROUND   Up      80/tcp
+webserver_webserver_3   apachectl -D FOREGROUND   Up      80/tcp
+webserver_webserver_4   apachectl -D FOREGROUND   Up      80/tcp
+
+vagrant@node01:~/dockerfiles/webserver$ docker-compose scale webserver=1
+WARNING: The scale command is deprecated. Use the up command with the --scale flag instead.
+Stopping and removing webserver_webserver_2 ... done
+Stopping and removing webserver_webserver_3 ... done
+Stopping and removing webserver_webserver_4 ... done
+
+1:53 parou video
+
+# traefik compose
 

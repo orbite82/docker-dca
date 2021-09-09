@@ -1,0 +1,27 @@
+# COMENTARIOS PARA REFERENCIA
+#
+# version -->  define a versao do arquivo compose
+# services --> define uma seçao para os serviços
+# build -->    define o local do dockerfile  =  ( docker image build -t imagem_webserver . )
+# hostname --> define o hostname do container
+# ports -->    define quais portas serao publicadas
+# restart -->  define uma politica de restart do container
+#
+# docker container run -dit --name <NOME> -p 80:80 <IMAGEM>
+# docker container run -dit --name webserver --hostname webserver -p 80:80 imagem_webserver
+# ------------------------------------------------------------------ 
+#
+# DOCKER-COMPOSE: -->
+
+version:  '3.3'
+
+services:
+  webserver:
+    build: . # passa o path do seu diretorio, no nosso caso e neste local entao fica com .
+    hostname: webserver
+    ports:
+      - 80:80
+    restart: always # opçoes: --> unless-stopped, always, on-failure, no = (DEFAULT)
+    volumes:
+      - $PWD/html:/var/www/html
+        # PWD = Print Working Directory
