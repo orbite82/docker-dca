@@ -5910,3 +5910,501 @@ f2dwohjlcv4s   pingtest.5   registry.docker-dca.example:5000/alpine:latest   nod
 
 vagrant@master:~$ docker service rm pingtest
 pingtest
+
+===========================================================================================================================================================================
+
+# AULA 10 : Docker DCA 10 - Docker Swarm - Stacks : https://www.youtube.com/watch?v=Wg2lWUjNyTQ
+
+#
+
+┌─[orbite]@[Navita]:~/docker-dca
+└──> $ vagrant ssh master
+
+vagrant@master:~$ docker node ls
+ID                            HOSTNAME                      STATUS    AVAILABILITY   MANAGER STATUS   ENGINE VERSION
+t5f9scytait2ac5f0bo11czw4 *   master.docker-dca.example     Ready     Active         Leader           20.10.8
+yd4bobxw2dzyrfmbiwhtdci2s     node01.docker-dca.example     Ready     Active                          20.10.8
+c4v1tf3jjhyhtwd8wxqn2a1l3     node02.docker-dca.example     Ready     Active                          20.10.8
+0mq77jyrtsif6lru1aochaado     registry.docker-dca.example   Ready     Active                          20.10.8
+
+vagrant@master:~$ docker service create --name pingtest registry.docker-dca.example:5000/alpine ping google.com
+image registry.docker-dca.example:5000/alpine:latest could not be accessed on a registry to record
+its digest. Each node will access registry.docker-dca.example:5000/alpine:latest independently,
+possibly leading to different nodes running different
+versions of the image.
+
+7373tiao2e9g98526akhwejin
+overall progress: 1 out of 1 tasks 
+1/1: running   [==================================================>] 
+verify: Service converged 
+
+vagrant@registry:~$ docker container ls
+CONTAINER ID   IMAGE                                            COMMAND             CREATED              STATUS              PORTS     NAMES
+2168d04e2e83   registry.docker-dca.example:5000/alpine:latest   "ping google.com"   About a minute ago   Up About a minute             pingtest.1.qb8x0ocr1obil7eindw4wk0i3
+
+vagrant@registry:~$ docker image ls
+REPOSITORY                                                          TAG       IMAGE ID       CREATED       SIZE
+nginx                                                               latest    ad4c705f24d3   3 days ago    133MB
+registry.docker-dca.example:5000/nginx                              latest    ad4c705f24d3   3 days ago    133MB
+wordpress                                                           latest    54fded966e25   8 days ago    618MB
+registry.docker-dca.example:5000/wordpress                          latest    54fded966e25   8 days ago    618MB
+mysql                                                               5.7       1d7aba917169   9 days ago    448MB
+registry.docker-dca.example:5000/mysql                              5.7       1d7aba917169   9 days ago    448MB
+registry                                                            2         b2cb11db9d3d   11 days ago   26.2MB
+alpine                                                              latest    14119a10abf4   2 weeks ago   5.6MB
+registry.docker-dca.example:5000/alpine                             123       14119a10abf4   2 weeks ago   5.6MB
+registry.docker-dca.example:5000/alpine                             abc       14119a10abf4   2 weeks ago   5.6MB
+registry.docker-dca.example:5000/alpine                             devops    14119a10abf4   2 weeks ago   5.6MB
+registry.docker-dca.example:5000/alpine                             latest    14119a10abf4   2 weeks ago   5.6MB
+registry.docker-dca.example:5000/alpine                             teste     14119a10abf4   2 weeks ago   5.6MB
+registry.docker-dca.example:5000/traefik                            v2.4      de1a7c9d5d63   3 weeks ago   92MB
+traefik                                                             v2.4      de1a7c9d5d63   3 weeks ago   92MB
+caiodelgadonew/docker-supermario                                    latest    1623184263b2   6 weeks ago   691MB
+registry.docker-dca.example:5000/caiodelgadonew/docker-supermario   latest    1623184263b2   6 weeks ago   691MB
+
+vagrant@registry:~$ docker container start registry
+registry
+
+vagrant@registry:~$ docker ps
+CONTAINER ID   IMAGE                                            COMMAND                  CREATED         STATUS          PORTS                                       NAMES
+2168d04e2e83   registry.docker-dca.example:5000/alpine:latest   "ping google.com"        3 minutes ago   Up 3 minutes                                                pingtest.1.qb8x0ocr1obil7eindw4wk0i3
+45683ffd26b4   registry:2                                       "/entrypoint.sh /etc…"   2 days ago      Up 12 seconds   0.0.0.0:5000->5000/tcp, :::5000->5000/tcp   registry
+
+vagrant@master:~$ docker service scale pingtest=3
+pingtest scaled to 3
+overall progress: 3 out of 3 tasks 
+1/3: running   [==================================================>] 
+2/3: running   [==================================================>] 
+3/3: running   [==================================================>] 
+verify: Service converged 
+
+vagrant@master:~$ docker service ps pingtest
+ID             NAME         IMAGE                                            NODE                          DESIRED STATE   CURRENT STATE                ERROR     PORTS
+qb8x0ocr1obi   pingtest.1   registry.docker-dca.example:5000/alpine:latest   registry.docker-dca.example   Running         Running 6 minutes ago                  
+tu2e2fzw57mj   pingtest.2   registry.docker-dca.example:5000/alpine:latest   node02.docker-dca.example     Running         Running about a minute ago             
+him4eqzn6dd0   pingtest.3   registry.docker-dca.example:5000/alpine:latest   master.docker-dca.example     Running         Running about a minute ago 
+
+vagrant@master:~$ docker service update --replicas 7 pingtest
+pingtest
+overall progress: 7 out of 7 tasks 
+1/7: running   [==================================================>] 
+2/7: running   [==================================================>] 
+3/7: running   [==================================================>] 
+4/7: running   [==================================================>] 
+5/7: running   [==================================================>] 
+6/7: running   [==================================================>] 
+7/7: running   [==================================================>] 
+verify: Service converged 
+
+vagrant@master:~$ docker node ls
+ID                            HOSTNAME                      STATUS    AVAILABILITY   MANAGER STATUS   ENGINE VERSION
+t5f9scytait2ac5f0bo11czw4 *   master.docker-dca.example     Ready     Active         Leader           20.10.8
+yd4bobxw2dzyrfmbiwhtdci2s     node01.docker-dca.example     Ready     Active                          20.10.8
+c4v1tf3jjhyhtwd8wxqn2a1l3     node02.docker-dca.example     Ready     Active                          20.10.8
+0mq77jyrtsif6lru1aochaado     registry.docker-dca.example   Ready     Active                          20.10.8
+
+# atualizar o nó para manutenção
+# drain
+
+vagrant@master:~$ docker node update node01.docker-dca.example --availability drain
+node01.docker-dca.example
+
+vagrant@master:~$ docker node ls
+ID                            HOSTNAME                      STATUS    AVAILABILITY   MANAGER STATUS   ENGINE VERSION
+t5f9scytait2ac5f0bo11czw4 *   master.docker-dca.example     Ready     Active         Leader           20.10.8
+yd4bobxw2dzyrfmbiwhtdci2s     node01.docker-dca.example     Ready     Drain                           20.10.8
+c4v1tf3jjhyhtwd8wxqn2a1l3     node02.docker-dca.example     Ready     Active                          20.10.8
+0mq77jyrtsif6lru1aochaado     registry.docker-dca.example   Ready     Active                          20.10.8
+
+vagrant@master:~$ docker service ps pingtest
+ID             NAME             IMAGE                                            NODE                          DESIRED STATE   CURRENT STATE             ERROR     PORTS
+qb8x0ocr1obi   pingtest.1       registry.docker-dca.example:5000/alpine:latest   registry.docker-dca.example   Running         Running 12 minutes ago              
+tu2e2fzw57mj   pingtest.2       registry.docker-dca.example:5000/alpine:latest   node02.docker-dca.example     Running         Running 7 minutes ago               
+him4eqzn6dd0   pingtest.3       registry.docker-dca.example:5000/alpine:latest   master.docker-dca.example     Running         Running 7 minutes ago               
+4iojf64qky44   pingtest.4       registry.docker-dca.example:5000/alpine:latest   node02.docker-dca.example     Running         Running 16 seconds ago              
+3h6rbeaqcjnx    \_ pingtest.4   registry.docker-dca.example:5000/alpine:latest   node01.docker-dca.example     Shutdown        Shutdown 18 seconds ago             
+hnm162vntj93   pingtest.5       registry.docker-dca.example:5000/alpine:latest   node02.docker-dca.example     Running         Running 16 seconds ago              
+ajcy23czlnck    \_ pingtest.5   registry.docker-dca.example:5000/alpine:latest   node01.docker-dca.example     Shutdown        Shutdown 18 seconds ago             
+wmyzezuby0m0   pingtest.6       registry.docker-dca.example:5000/alpine:latest   master.docker-dca.example     Running         Running 3 minutes ago               
+nsxl9ncdvwiy   pingtest.7       registry.docker-dca.example:5000/alpine:latest   registry.docker-dca.example   Running         Running 3 minutes ago 
+
+# maneira correta de desligar uma máquina é fazer o drain e depois desligar ela
+
+vagrant@master:~$ docker node inspect node01.docker-dca.example |  jq
+[
+  {
+    "ID": "yd4bobxw2dzyrfmbiwhtdci2s",
+    "Version": {
+      "Index": 231
+    },
+    "CreatedAt": "2021-09-09T19:23:53.562013287Z",
+    "UpdatedAt": "2021-09-12T21:19:22.845520565Z",
+    "Spec": {
+      "Labels": {},
+      "Role": "worker",
+      "Availability": "drain"
+    },
+    "Description": {
+      "Hostname": "node01.docker-dca.example",
+      "Platform": {
+        "Architecture": "x86_64",
+        "OS": "linux"
+      },
+      "Resources": {
+        "NanoCPUs": 2000000000,
+        "MemoryBytes": 1032757248
+      },
+      "Engine": {
+        "EngineVersion": "20.10.8",
+        "Plugins": [
+          {
+            "Type": "Log",
+            "Name": "awslogs"
+          },
+          {
+            "Type": "Log",
+            "Name": "fluentd"
+          },
+          {
+            "Type": "Log",
+            "Name": "gcplogs"
+          },
+          {
+            "Type": "Log",
+            "Name": "gelf"
+          },
+          {
+            "Type": "Log",
+            "Name": "journald"
+          },
+          {
+            "Type": "Log",
+            "Name": "json-file"
+          },
+          {
+            "Type": "Log",
+            "Name": "local"
+          },
+          {
+            "Type": "Log",
+            "Name": "logentries"
+          },
+          {
+            "Type": "Log",
+            "Name": "splunk"
+          },
+          {
+            "Type": "Log",
+            "Name": "syslog"
+          },
+          {
+            "Type": "Network",
+            "Name": "bridge"
+          },
+          {
+            "Type": "Network",
+            "Name": "host"
+          },
+          {
+            "Type": "Network",
+            "Name": "ipvlan"
+          },
+          {
+            "Type": "Network",
+            "Name": "macvlan"
+          },
+          {
+            "Type": "Network",
+            "Name": "null"
+          },
+          {
+            "Type": "Network",
+            "Name": "overlay"
+          },
+          {
+            "Type": "Volume",
+            "Name": "local"
+          }
+        ]
+      },
+      "TLSInfo": {
+        "TrustRoot": "-----BEGIN CERTIFICATE-----\nMIIBazCCARCgAwIBAgIUZAqWnTb58c9Bs4BNdLKsAQsQQGMwCgYIKoZIzj0EAwIw\nEzERMA8GA1UEAxMIc3dhcm0tY2EwHhcNMjEwOTA5MTkxNzAwWhcNNDEwOTA0MTkx\nNzAwWjATMREwDwYDVQQDEwhzd2FybS1jYTBZMBMGByqGSM49AgEGCCqGSM49AwEH\nA0IABGdlCwuav24cfUfoncrDsxzeWdpr5Zu9dR53W8qNkc3X+FIVpPkOWmNhcPYS\nvlcWL6l9dRxhlEIzAY+bVvoX4sWjQjBAMA4GA1UdDwEB/wQEAwIBBjAPBgNVHRMB\nAf8EBTADAQH/MB0GA1UdDgQWBBTpP9TWoLdZO1eZI8rGJkUAxp3m+jAKBggqhkjO\nPQQDAgNJADBGAiEAhqjb76gNeZ/0yMnPqo6qU3084Q8+I9KVa2tA/mMHx+ICIQDl\nKIx0M15WLsv79imvirTLCZBPf2oq5c344xbvBkx13A==\n-----END CERTIFICATE-----\n",
+        "CertIssuerSubject": "MBMxETAPBgNVBAMTCHN3YXJtLWNh",
+        "CertIssuerPublicKey": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEZ2ULC5q/bhx9R+idysOzHN5Z2mvlm711Hndbyo2Rzdf4UhWk+Q5aY2Fw9hK+VxYvqX11HGGUQjMBj5tW+hfixQ=="
+      }
+    },
+    "Status": {
+      "State": "ready",
+      "Addr": "10.20.20.110"
+    }
+  }
+]
+
+# ou 
+
+vagrant@master:~$ docker node inspect --pretty node01.docker-dca.example
+ID:                     yd4bobxw2dzyrfmbiwhtdci2s
+Hostname:               node01.docker-dca.example
+Joined at:              2021-09-09 19:23:53.562013287 +0000 utc
+Status:
+ State:                 Ready
+ Availability:          Drain
+ Address:               10.20.20.110
+Platform:
+ Operating System:      linux
+ Architecture:          x86_64
+Resources:
+ CPUs:                  2
+ Memory:                984.9MiB
+Plugins:
+ Log:           awslogs, fluentd, gcplogs, gelf, journald, json-file, local, logentries, splunk, syslog
+ Network:               bridge, host, ipvlan, macvlan, null, overlay
+ Volume:                local
+Engine Version:         20.10.8
+TLS Info:
+ TrustRoot:
+-----BEGIN CERTIFICATE-----
+MIIBazCCARCgAwIBAgIUZAqWnTb58c9Bs4BNdLKsAQsQQGMwCgYIKoZIzj0EAwIw
+EzERMA8GA1UEAxMIc3dhcm0tY2EwHhcNMjEwOTA5MTkxNzAwWhcNNDEwOTA0MTkx
+NzAwWjATMREwDwYDVQQDEwhzd2FybS1jYTBZMBMGByqGSM49AgEGCCqGSM49AwEH
+A0IABGdlCwuav24cfUfoncrDsxzeWdpr5Zu9dR53W8qNkc3X+FIVpPkOWmNhcPYS
+vlcWL6l9dRxhlEIzAY+bVvoX4sWjQjBAMA4GA1UdDwEB/wQEAwIBBjAPBgNVHRMB
+Af8EBTADAQH/MB0GA1UdDgQWBBTpP9TWoLdZO1eZI8rGJkUAxp3m+jAKBggqhkjO
+PQQDAgNJADBGAiEAhqjb76gNeZ/0yMnPqo6qU3084Q8+I9KVa2tA/mMHx+ICIQDl
+KIx0M15WLsv79imvirTLCZBPf2oq5c344xbvBkx13A==
+-----END CERTIFICATE-----
+
+ Issuer Subject:        MBMxETAPBgNVBAMTCHN3YXJtLWNh
+ Issuer Public Key:     MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEZ2ULC5q/bhx9R+idysOzHN5Z2mvlm711Hndbyo2Rzdf4UhWk+Q5aY2Fw9hK+VxYvqX11HGGUQjMBj5tW+hfixQ==
+
+# voltando a máquina do drain
+
+vagrant@master:~$ docker node update node01.docker-dca.example --availability active
+node01.docker-dca.example
+
+vagrant@master:~$ docker node ls
+ID                            HOSTNAME                      STATUS    AVAILABILITY   MANAGER STATUS   ENGINE VERSION
+t5f9scytait2ac5f0bo11czw4 *   master.docker-dca.example     Ready     Active         Leader           20.10.8
+yd4bobxw2dzyrfmbiwhtdci2s     node01.docker-dca.example     Ready     Active                          20.10.8
+c4v1tf3jjhyhtwd8wxqn2a1l3     node02.docker-dca.example     Ready     Active                          20.10.8
+0mq77jyrtsif6lru1aochaado     registry.docker-dca.example   Ready     Active                          20.10.8
+
+# o serviço esta no estado desejavel
+vagrant@master:~$ docker service ps pingtest
+ID             NAME             IMAGE                                            NODE                          DESIRED STATE   CURRENT STATE            ERROR     PORTS
+qb8x0ocr1obi   pingtest.1       registry.docker-dca.example:5000/alpine:latest   registry.docker-dca.example   Running         Running 18 minutes ago             
+tu2e2fzw57mj   pingtest.2       registry.docker-dca.example:5000/alpine:latest   node02.docker-dca.example     Running         Running 13 minutes ago             
+him4eqzn6dd0   pingtest.3       registry.docker-dca.example:5000/alpine:latest   master.docker-dca.example     Running         Running 13 minutes ago             
+4iojf64qky44   pingtest.4       registry.docker-dca.example:5000/alpine:latest   node02.docker-dca.example     Running         Running 6 minutes ago              
+3h6rbeaqcjnx    \_ pingtest.4   registry.docker-dca.example:5000/alpine:latest   node01.docker-dca.example     Shutdown        Shutdown 6 minutes ago             
+hnm162vntj93   pingtest.5       registry.docker-dca.example:5000/alpine:latest   node02.docker-dca.example     Running         Running 6 minutes ago              
+ajcy23czlnck    \_ pingtest.5   registry.docker-dca.example:5000/alpine:latest   node01.docker-dca.example     Shutdown        Shutdown 6 minutes ago             
+wmyzezuby0m0   pingtest.6       registry.docker-dca.example:5000/alpine:latest   master.docker-dca.example     Running         Running 9 minutes ago              
+nsxl9ncdvwiy   pingtest.7       registry.docker-dca.example:5000/alpine:latest   registry.docker-dca.example   Running         Running 9 minutes ago
+
+vagrant@master:~$ docker service inspect --pretty pingtest
+
+ID:             7373tiao2e9g98526akhwejin
+Name:           pingtest
+Service Mode:   Replicated
+ Replicas:      7
+Placement:
+UpdateConfig:
+ Parallelism:   1
+ On failure:    pause
+ Monitoring Period: 5s
+ Max failure ratio: 0
+ Update order:      stop-first
+RollbackConfig:
+ Parallelism:   1
+ On failure:    pause
+ Monitoring Period: 5s
+ Max failure ratio: 0
+ Rollback order:    stop-first
+ContainerSpec:
+ Image:         registry.docker-dca.example:5000/alpine:latest
+ Args:          ping google.com 
+ Init:          false
+Resources:
+Endpoint Mode:  vip
+
+# verificando se meu nó esta disponivel
+
+vagrant@master:~$ docker service scale pingtest=10
+pingtest scaled to 10
+overall progress: 10 out of 10 tasks 
+1/10: running   [==================================================>] 
+2/10: running   [==================================================>] 
+3/10: running   [==================================================>] 
+4/10: running   [==================================================>] 
+5/10: running   [==================================================>] 
+6/10: running   [==================================================>] 
+7/10: running   [==================================================>] 
+8/10: running   [==================================================>] 
+9/10: running   [==================================================>] 
+10/10: running   [==================================================>] 
+verify: Service converged 
+
+vagrant@master:~$ docker service ps pingtest
+ID             NAME             IMAGE                                            NODE                          DESIRED STATE   CURRENT STATE            ERROR     PORTS
+qb8x0ocr1obi   pingtest.1       registry.docker-dca.example:5000/alpine:latest   registry.docker-dca.example   Running         Running 21 minutes ago             
+tu2e2fzw57mj   pingtest.2       registry.docker-dca.example:5000/alpine:latest   node02.docker-dca.example     Running         Running 16 minutes ago             
+him4eqzn6dd0   pingtest.3       registry.docker-dca.example:5000/alpine:latest   master.docker-dca.example     Running         Running 16 minutes ago             
+4iojf64qky44   pingtest.4       registry.docker-dca.example:5000/alpine:latest   node02.docker-dca.example     Running         Running 9 minutes ago              
+3h6rbeaqcjnx    \_ pingtest.4   registry.docker-dca.example:5000/alpine:latest   node01.docker-dca.example     Shutdown        Shutdown 9 minutes ago             
+hnm162vntj93   pingtest.5       registry.docker-dca.example:5000/alpine:latest   node02.docker-dca.example     Running         Running 9 minutes ago              
+ajcy23czlnck    \_ pingtest.5   registry.docker-dca.example:5000/alpine:latest   node01.docker-dca.example     Shutdown        Shutdown 9 minutes ago             
+wmyzezuby0m0   pingtest.6       registry.docker-dca.example:5000/alpine:latest   master.docker-dca.example     Running         Running 12 minutes ago             
+nsxl9ncdvwiy   pingtest.7       registry.docker-dca.example:5000/alpine:latest   registry.docker-dca.example   Running         Running 12 minutes ago             
+mw16nvbqbgrw   pingtest.8       registry.docker-dca.example:5000/alpine:latest   node01.docker-dca.example     Running         Running 32 seconds ago             
+zdu4hg6kbome   pingtest.9       registry.docker-dca.example:5000/alpine:latest   node01.docker-dca.example     Running         Running 32 seconds ago             
+0mpx1ib44lcb   pingtest.10      registry.docker-dca.example:5000/alpine:latest   node01.docker-dca.example     Running         Running 32 seconds ago  
+
+vagrant@master:~$ docker service ls
+ID             NAME       MODE         REPLICAS   IMAGE                                            PORTS
+7373tiao2e9g   pingtest   replicated   10/10      registry.docker-dca.example:5000/alpine:latest  
+
+# revmovendo o serviço
+vagrant@master:~$ docker service rm pingtest
+pingtest
+
+
+# SECRETS
+
+# blob  BLOB BLOB
+# Binary Large Object
+# Basic Large Object
+
+# como passar SECRET no DOCKER
+docker secret
+
+vagrant@master:~$ docker secret ls
+ID        NAME      DRIVER    CREATED   UPDATED
+
+# criar SECRET
+# -  --> leia a entrada
+docker secret create <SECRET_NAME>  (INPUT)
+
+# ele fica gravado o comando no history ***(echo)*** então não é a melhor forma de se fazer
+vagrant@master:~$ echo "caiodelgadonew123" | docker secret create senha_db -
+jy1cthnbd0mb1pid97qwoj3nd
+
+vagrant@master:~$ docker secret ls
+ID                          NAME       DRIVER    CREATED          UPDATED
+jy1cthnbd0mb1pid97qwoj3nd   senha_db             48 seconds ago   48 seconds ago
+
+# verificar a informação dentro, mas não consigo ver o dado sensitivo
+vagrant@master:~$ docker secret inspect --pretty senha_db
+ID:              jy1cthnbd0mb1pid97qwoj3nd
+Name:              senha_db
+Driver:            
+Created at:        2021-09-12 21:40:28.931081214 +0000 utc
+Updated at:        2021-09-12 21:40:28.931081214 +0000 utc
+
+#caminho aonde fica as secrets
+/run/secrets/senha_db
+
+
+vagrant@master:~$ docker service create --name mysql_database --publish 3306:3306/tcp --secret senha_db -e MYSQL_ROOT_PASSWORD_FILE=/run/secrets/senha_db registry.docker-dca.example:5000/mysql:5.7
+lq6l6otxu6zz6rgmadl2iquz3
+overall progress: 1 out of 1 tasks 
+1/1: running   [==================================================>] 
+verify: Service converged 
+
+vagrant@master:~$ docker service ps mysql_database
+ID             NAME               IMAGE                                        NODE                        DESIRED STATE   CURRENT STATE            ERROR     PORTS
+hxnt5o2hoocd   mysql_database.1   registry.docker-dca.example:5000/mysql:5.7   node02.docker-dca.example   Running         Running 30 seconds ago
+
+vagrant@master:~$ sudo apt-get install mariadb-client -y >/dev/null 2>&1
+
+vagrant@master:~$ sudo apt-get install mariadb-client -y >/dev/null 2>&1
+
+vagrant@master:~$ mysql -h node02.docker-dca.example -u root -pcaiodelgadonew123
+Welcome to the MariaDB monitor.  Commands end with ; or \g.
+Your MySQL connection id is 2
+Server version: 5.7.35 MySQL Community Server (GPL)
+
+Copyright (c) 2000, 2018, Oracle, MariaDB Corporation Ab and others.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+MySQL [(none)]> 
+
+vagrant@master:~$ mysql -h node02.docker-dca.example -u root -pcaiodelgadonew123
+Welcome to the MariaDB monitor.  Commands end with ; or \g.
+Your MySQL connection id is 2
+Server version: 5.7.35 MySQL Community Server (GPL)
+
+Copyright (c) 2000, 2018, Oracle, MariaDB Corporation Ab and others.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+MySQL [(none)]> CREATE DATABASE caiodelgadonew;
+Query OK, 1 row affected (0.00 sec)
+
+MySQL [(none)]> 
+
+MySQL [(none)]> SHOW DATABASES;
++--------------------+
+| Database           |
++--------------------+
+| information_schema |
+| caiodelgadonew     |
+| mysql              |
+| performance_schema |
+| sys                |
++--------------------+
+5 rows in set (0.00 sec)
+
+MySQL [(none)]> 
+
+
+vagrant@master:~$ mysql -h node02.docker-dca.example -u root -p
+Enter password: 
+Welcome to the MariaDB monitor.  Commands end with ; or \g.
+Your MySQL connection id is 4
+Server version: 5.7.35 MySQL Community Server (GPL)
+
+Copyright (c) 2000, 2018, Oracle, MariaDB Corporation Ab and others.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+MySQL [(none)]>
+
+[vagrant@node02 ~]$ docker container ls
+CONTAINER ID   IMAGE                                        COMMAND                  CREATED         STATUS         PORTS                 NAMES
+4bcae5953d96   registry.docker-dca.example:5000/mysql:5.7   "docker-entrypoint.s…"   8 minutes ago   Up 8 minutes   3306/tcp, 33060/tcp   mysql_database.1.hxnt5o2hoocdaupabbszpkrzl
+
+[vagrant@node02 ~]$ docker container exec -it mysql_database.1.hxnt5o2hoocdaupabbszpkrzl cat /run/secrets/senha_db
+caiodelgadonew123
+
+vagrant@master:~$ docker service rm mysql_database
+mysql_database
+
+# NETWORK NO SWARM
+
+vagrant@master:~$ docker network ls
+NETWORK ID     NAME              DRIVER    SCOPE
+f6f1878b0061   bridge            bridge    local
+92df0a78a174   docker_gwbridge   bridge    local
+ed596400439a   host              host      local
+bqgcv3n7hjlx   ingress           overlay   swarm
+44becc95d444   none              null      local
+vagrant@master:~$ 
+
+# criar
+
+vagrant@master:~$ docker network create -d overlay dca-overlay
+o0pe88ca4bjcdhzzofw15pujg
+
+vagrant@master:~$ docker network ls
+NETWORK ID     NAME              DRIVER    SCOPE
+f6f1878b0061   bridge            bridge    local
+o0pe88ca4bjc   dca-overlay       overlay   swarm
+92df0a78a174   docker_gwbridge   bridge    local
+ed596400439a   host              host      local
+bqgcv3n7hjlx   ingress           overlay   swarm
+44becc95d444   none              null      local
+
+
+
