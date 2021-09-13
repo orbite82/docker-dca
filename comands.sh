@@ -6406,5 +6406,633 @@ ed596400439a   host              host      local
 bqgcv3n7hjlx   ingress           overlay   swarm
 44becc95d444   none              null      local
 
+51:40
+
+vagrant@master:~$ docker network inspect dca-overlay
+[
+    {
+        "Name": "dca-overlay",
+        "Id": "o0pe88ca4bjcdhzzofw15pujg",
+        "Created": "2021-09-12T22:17:02.017101286Z",
+        "Scope": "swarm",
+        "Driver": "overlay",
+        "EnableIPv6": false,
+        "IPAM": {
+            "Driver": "default",
+            "Options": null,
+            "Config": [
+                {
+                    "Subnet": "10.0.1.0/24",
+                    "Gateway": "10.0.1.1"
+                }
+            ]
+        },
+        "Internal": false,
+        "Attachable": false,
+        "Ingress": false,
+        "ConfigFrom": {
+            "Network": ""
+        },
+        "ConfigOnly": false,
+        "Containers": null,
+        "Options": {
+            "com.docker.network.driver.overlay.vxlanid_list": "4097"
+        },
+        "Labels": null
+    }
+]
+
+# fora e dentro do container para publicar a porta
+--publish target=80,published=80
+
+vagrant@master:~$ docker service create --name webserver --publish target=80,published=80 --network dca-overlay registry.docker-dca.example:5000/nginx
+4dgsmj0tvqj5nojydfp6hcx7r
+overall progress: 1 out of 1 tasks 
+1/1: running   [==================================================>] 
+verify: Service converged 
+
+vagrant@master:~$ docker node ps
+ID        NAME      IMAGE     NODE      DESIRED STATE   CURRENT STATE   ERROR     PORTS
+vagrant@master:~$ docker service ps webserver
+ID             NAME          IMAGE                                           NODE                          DESIRED STATE   CURRENT STATE            ERROR     PORTS
+o0t7ra87ardv   webserver.1   registry.docker-dca.example:5000/nginx:latest   registry.docker-dca.example   Running         Running 23 minutes ago 
+
+vagrant@registry:~$ docker container ls
+CONTAINER ID   IMAGE                                           COMMAND                  CREATED          STATUS          PORTS                                       NAMES
+0e1a768af669   registry.docker-dca.example:5000/nginx:latest   "/docker-entrypoint.…"   25 minutes ago   Up 25 minutes   80/tcp                                      webserver.1.o0t7ra87ardv6387x32digs68
+45683ffd26b4   registry:2                                      "/entrypoint.sh /etc…"   2 days ago       Up 37 minutes   0.0.0.0:5000->5000/tcp, :::5000->5000/tcp   registry
+
+# todas as máquinas distribui a rede criada em todo cluster
+vagrant@registry:~$ docker network ls
+NETWORK ID     NAME              DRIVER    SCOPE
+59cd6ba97445   bridge            bridge    local
+o0pe88ca4bjc   dca-overlay       overlay   swarm
+6971d732dfd9   docker_gwbridge   bridge    local
+09fed80fb8da   host              host      local
+bqgcv3n7hjlx   ingress           overlay   swarm
+386ee1787e0b   none              null      local
+
+vagrant@master:~$ docker service scale webserver=3
+webserver scaled to 3
+overall progress: 3 out of 3 tasks 
+1/3: running   [==================================================>] 
+2/3: running   [==================================================>] 
+3/3: running   [==================================================>] 
+verify: Service converged
+
+vagrant@master:~$ docker service ps webserver
+ID             NAME          IMAGE                                           NODE                          DESIRED STATE   CURRENT STATE            ERROR     PORTS
+o0t7ra87ardv   webserver.1   registry.docker-dca.example:5000/nginx:latest   registry.docker-dca.example   Running         Running 27 minutes ago             
+naam1ty48fga   webserver.2   registry.docker-dca.example:5000/nginx:latest   node02.docker-dca.example     Running         Running 54 seconds ago             
+qr6z1sln5w1y   webserver.3   registry.docker-dca.example:5000/nginx:latest   master.docker-dca.example     Running         Running 49 seconds ago  
+
+# jogar essas url e explodir no navegador
+registry.docker-dca.example
+node02.docker-dca.example
+master.docker-dca.example
+
+# TARGET
+# PUBLISHED
+#                        --publish target=80,published=80
+#                                  SORCE   , DEST
+#                                  HOST    , CONTAINER
+# docker container run              -p 80:80
+
+# instalar os plugins
+
+vagrant@master:~$ docker plugin install trajano/nfs-volume-plugin --grant-all-permissions
+latest: Pulling from trajano/nfs-volume-plugin
+Digest: sha256:ca87775c784956c67acd5eeb523e9a931bb56ac02b6d694b500bb0111c515af4
+d61756e4bb65: Complete 
+Installed plugin trajano/nfs-volume-plugin
+
+vagrant@node01:~$ docker plugin install trajano/nfs-volume-plugin --grant-all-permissions
+latest: Pulling from trajano/nfs-volume-plugin
+Digest: sha256:ca87775c784956c67acd5eeb523e9a931bb56ac02b6d694b500bb0111c515af4
+d61756e4bb65: Complete 
+Installed plugin trajano/nfs-volume-plugin
+
+[vagrant@node02 ~]$ docker container ls
+CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES
+[vagrant@node02 ~]$ docker plugin install trajano/nfs-volume-plugin --grant-all-permissions
+latest: Pulling from trajano/nfs-volume-plugin
+Digest: sha256:ca87775c784956c67acd5eeb523e9a931bb56ac02b6d694b500bb0111c515af4
+d61756e4bb65: Complete 
+Installed plugin trajano/nfs-volume-plugin
+
+[vagrant@node02 ~]$ docker plugin ls
+ID             NAME                               DESCRIPTION                     ENABLED
+d06308f519ef   trajano/nfs-volume-plugin:latest   NFS mounted plugin for Docker   true
+
+vagrant@master:~$ docker plugin ls
+ID             NAME                               DESCRIPTION                     ENABLED
+60940a88ff0d   trajano/nfs-volume-plugin:latest   NFS mounted plugin for Docker   true
+
+vagrant@node01:~$ docker plugin ls
+ID             NAME                               DESCRIPTION                     ENABLED
+4bc1bddde4a6   trajano/nfs-volume-plugin:latest   NFS mounted plugin for Docker   true
+
+# instalar o nfs server
+vagrant@master:~$ sudo apt-get install nfs-server -y
+
+vagrant@master:~$ mkdir -p /home/vagrant/storage
+
+vagrant@master:~$ echo "/home/vagrant/storage/ 10.20.20.0/24(rw)" | sudo tee -a /etc/exports
+/home/vagrant/storage/ 10.20.20.0/24(rw)
+
+vagrant@master:~$ sudo systemctl restart nfs-server
+
+vagrant@node01:~$ sudo apt-get install nfs-common -y
+
+[vagrant@node02 ~]$ sudo yum install nfs-utils -y
+
+vagrant@master:~$ sudo showmount -e master.docker-dca.example
+Export list for master.docker-dca.example:
+/home/vagrant/storage 10.20.20.0/24
+
+vagrant@node01:~$ sudo showmount -e master.docker-dca.example
+Export list for master.docker-dca.example:
+/home/vagrant/storage 10.20.20.0/24
+
+[vagrant@node02 ~]$ sudo showmount -e master.docker-dca.example
+Export list for master.docker-dca.example:
+/home/vagrant/storage 10.20.20.0/24
+
+# criar o volume na master
+vagrant@master:~$ docker volume create -d trajano/nfs-volume-plugin --opt device=master.docker-dca.example:/home/vagrant/storage --opt nfsopts=hard,proto=tcp,nfsvers=3,intr,nolock volume_nfs
+volume_nfs
+
+vagrant@master:~$ docker volume inspect volume_nfs | jq
+[
+  {
+    "CreatedAt": "0001-01-01T00:00:00Z",
+    "Driver": "trajano/nfs-volume-plugin:latest",
+    "Labels": {},
+    "Mountpoint": "",
+    "Name": "volume_nfs",
+    "Options": {
+      "device": "master.docker-dca.example:/home/vagrant/storage",
+      "nfsopts": "hard,proto=tcp,nfsvers=3,intr,nolock"
+    },
+    "Scope": "global",
+    "Status": {
+      "args": [
+        "-t",
+        "nfs",
+        "-o",
+        "hard,proto=tcp,nfsvers=3,intr,nolock",
+        "master.docker-dca.example:/home/vagrant/storage"
+      ],
+      "mounted": false
+    }
+  }
+]
+
+vagrant@master:~$ echo "<h1> Volume NFS master.docker-dca.example</h1>" | tee /home/vagrant/storage/index.html
+<h1> Volume NFS master.docker-dca.example</h1>
+
+vagrant@master:~$ docker ps
+CONTAINER ID   IMAGE                                           COMMAND                  CREATED       STATUS       PORTS     NAMES
+8df25f828ec8   registry.docker-dca.example:5000/nginx:latest   "/docker-entrypoint.…"   4 hours ago   Up 4 hours   80/tcp    webserver.3.qr6z1sln5w1y633qofl22ns2t
+
+vagrant@master:~$ docker service ps webserver
+ID             NAME          IMAGE                                           NODE                          DESIRED STATE   CURRENT STATE         ERROR     PORTS
+o0t7ra87ardv   webserver.1   registry.docker-dca.example:5000/nginx:latest   registry.docker-dca.example   Running         Running 5 hours ago             
+naam1ty48fga   webserver.2   registry.docker-dca.example:5000/nginx:latest   node02.docker-dca.example     Running         Running 4 hours ago             
+qr6z1sln5w1y   webserver.3   registry.docker-dca.example:5000/nginx:latest   master.docker-dca.example     Running         Running 4 hours ago    
+
+vagrant@master:~$ docker service rm webserver
+webserver
+
+vagrant@master:~$ docker service create --name webserver --replicas 3 --publish 80:80 --network dca-overlay --mount source=volume_nfs,target=/usr/share/nginx/html registry.docker-dca.example:5000/nginx
+htpa1o3gl58kokvahwlp1jsfv
+overall progress: 3 out of 3 tasks 
+1/3: running   [==================================================>] 
+2/3: running   [==================================================>] 
+3/3: running   [==================================================>] 
+verify: Service converged 
+
+vagrant@master:~$ docker service ps webserver
+ID             NAME              IMAGE                                           NODE                          DESIRED STATE   CURRENT STATE            ERROR                              PORTS
+fhbh5m0ncm6m   webserver.1       registry.docker-dca.example:5000/nginx:latest   node02.docker-dca.example     Running         Running 2 minutes ago                                       
+f9rwr4t6ixqk   webserver.2       registry.docker-dca.example:5000/nginx:latest   node01.docker-dca.example     Running         Running 2 minutes ago                                       
+yykg8zusocvb    \_ webserver.2   registry.docker-dca.example:5000/nginx:latest   master.docker-dca.example     Shutdown        Rejected 2 minutes ago   "VolumeDriver.Mount: error mou…"   
+5i7c8q2va26m    \_ webserver.2   registry.docker-dca.example:5000/nginx:latest   master.docker-dca.example     Shutdown        Rejected 2 minutes ago   "VolumeDriver.Mount: error mou…"   
+bk89fm7kb28u    \_ webserver.2   registry.docker-dca.example:5000/nginx:latest   master.docker-dca.example     Shutdown        Rejected 2 minutes ago   "VolumeDriver.Mount: error mou…"   
+gwleez1g7cbn   webserver.3       registry.docker-dca.example:5000/nginx:latest   registry.docker-dca.example   Running         Running 2 minutes ago                                       
+vagrant@master:~$ 
+
+# como verificar os erros de volume acima com esse comando
+# --no-trunc # comando pra não fazer o truncat da saida
+
+vagrant@master:~$ docker service ps webserver --no-trunc
+ID                          NAME              IMAGE                                                                                                                   NODE                          DESIRED STATE   CURRENT STATE            ERROR                                                             PORTS
+fhbh5m0ncm6msy1vz11dipfxk   webserver.1       registry.docker-dca.example:5000/nginx:latest@sha256:6fe11397c34b973f3c957f0da22b09b7f11a4802e1db47aef54c29e2813cc125   node02.docker-dca.example     Running         Running 5 minutes ago                                                                      
+f9rwr4t6ixqktnifcrot9ttpr   webserver.2       registry.docker-dca.example:5000/nginx:latest@sha256:6fe11397c34b973f3c957f0da22b09b7f11a4802e1db47aef54c29e2813cc125   node01.docker-dca.example     Running         Running 4 minutes ago                                                                      
+yykg8zusocvb418fsd7k9bx1e    \_ webserver.2   registry.docker-dca.example:5000/nginx:latest@sha256:6fe11397c34b973f3c957f0da22b09b7f11a4802e1db47aef54c29e2813cc125   master.docker-dca.example     Shutdown        Rejected 5 minutes ago   "VolumeDriver.Mount: error mounting volume_nfs: exit status 32"   
+5i7c8q2va26m7sj2ar1ldhopz    \_ webserver.2   registry.docker-dca.example:5000/nginx:latest@sha256:6fe11397c34b973f3c957f0da22b09b7f11a4802e1db47aef54c29e2813cc125   master.docker-dca.example     Shutdown        Rejected 5 minutes ago   "VolumeDriver.Mount: error mounting volume_nfs: exit status 32"   
+bk89fm7kb28u74yphnbdaj9w2    \_ webserver.2   registry.docker-dca.example:5000/nginx:latest@sha256:6fe11397c34b973f3c957f0da22b09b7f11a4802e1db47aef54c29e2813cc125   master.docker-dca.example     Shutdown        Rejected 5 minutes ago   "VolumeDriver.Mount: error mounting volume_nfs: exit status 32"   
+gwleez1g7cbnopdzvh1zofcvj   webserver.3       registry.docker-dca.example:5000/nginx:latest@sha256:6fe11397c34b973f3c957f0da22b09b7f11a4802e1db47aef54c29e2813cc125   registry.docker-dca.example   Running         Running 5 minutes ago  
+
+vagrant@node01:~$ sudo dpkg -l | grep nfs
+ii  libnfsidmap2:amd64               0.25-5.1                            amd64        NFS idmapping library
+ii  nfs-common                       1:1.3.4-2.1ubuntu5.5                amd64        NFS support files common to client and server
 
 
+
+# STACK
+# docker stack deploy
+# Stack, compose version > 3
+
+vagrant@master:~$ mkdir ~/stack
+
+vagrant@master:~$ ls
+stack  storage
+
+vagrant@master:~$ cd stack/
+
+vagrant@master:~/stack$ vim webserver.yml
+
+version: '3.9'
+
+services:
+  webserver:
+    image: resgistry.docker-dca.example:5000/nginx
+    ports:
+      - 80:80
+
+vagrant@master:~/stack$ sudo apt  install docker-compose
+
+vagrant@master:~/stack$ docker stack deploy --compose-file webserver.yml 
+
+vagrant@master:~/stack$ docker stack deploy --compose-file webserver.yml webserver-nginx
+Creating network webserver-nginx_default
+Creating service webserver-nginx_webserver
+
+vagrant@master:~/stack$ docker stack ls
+NAME              SERVICES   ORCHESTRATOR
+webserver-nginx   1          Swarm
+
+# aqui esta com erro deveria esta 1/1 replicas
+vagrant@master:~/stack$ docker stack services webserver-nginx
+ID             NAME                        MODE         REPLICAS   IMAGE                                            PORTS
+10tzekkjdwrg   webserver-nginx_webserver   replicated   0/1        resgistry.docker-dca.example:5000/nginx:latest   *:80->80/tcp
+
+vagrant@master:~/stack$ docker stack ps webserver-nginx
+ID             NAME                              IMAGE                                            NODE                          DESIRED STATE   CURRENT STATE              ERROR                              PORTS
+sml7w4k1vlfa   webserver-nginx_webserver.1       resgistry.docker-dca.example:5000/nginx:latest   node01.docker-dca.example     Running         Preparing 10 seconds ago                                      
+wbf585egds4r    \_ webserver-nginx_webserver.1   resgistry.docker-dca.example:5000/nginx:latest   registry.docker-dca.example   Shutdown        Rejected 14 seconds ago    "No such image: resgistry.dock…"   
+pjj3kp3d3dk6    \_ webserver-nginx_webserver.1   resgistry.docker-dca.example:5000/nginx:latest   registry.docker-dca.example   Shutdown        Rejected 15 seconds ago    "No such image: resgistry.dock…"   
+jx4jg8er2gk1    \_ webserver-nginx_webserver.1   resgistry.docker-dca.example:5000/nginx:latest   node01.docker-dca.example     Shutdown        Rejected 32 seconds ago    "No such image: resgistry.dock…"
+
+vagrant@master:~/stack$ vim webserver.yml
+
+version: '3.9'
+  
+services:
+  webserver:
+    image: resgistry.docker-dca.example:5000/nginx
+    hostname: webserver
+    ports:
+      - 80:80
+    deploy:
+      replicas: 2
+      restart_policy:
+              condition: on-failure              
+              
+vagrant@master:~/stack$ docker stack deploy -c webserver.yml webserver-nginx
+Updating service webserver-nginx_webserver (id: 10tzekkjdwrgrs6xzh5lwxfy2)
+image resgistry.docker-dca.example:5000/nginx:latest could not be accessed on a registry to record
+its digest. Each node will access resgistry.docker-dca.example:5000/nginx:latest independently,
+possibly leading to different nodes running different
+versions of the image.
+
+# continua com erro pois eu removi o auto scaling de 3 replicas
+vagrant@master:~/stack$ docker stack services webserver-nginx
+ID             NAME                        MODE         REPLICAS   IMAGE                                            PORTS
+10tzekkjdwrg   webserver-nginx_webserver   replicated   0/2        resgistry.docker-dca.example:5000/nginx:latest   *:80->80/tcp
+
+
+vagrant@master:~/stack$ vim webserver.yml
+
+version: '3.9'
+  
+services:
+  webserver:
+    image: resgistry.docker-dca.example:5000/nginx
+    hostname: webserver
+    ports:
+      - 80:80
+    deploy:
+      mode: global
+      restart_policy:
+        condition: on-failure
+
+vagrant@master:~/stack$ docker stack deploy -c webserver.yml webserver-nginx
+Updating service webserver-nginx_webserver (id: 10tzekkjdwrgrs6xzh5lwxfy2)
+failed to update service webserver-nginx_webserver: Error response from daemon: rpc error: code = Unimplemented desc = service mode change is not allowed   
+
+# para corrigir o erro acima porque ele é replicated
+
+vagrant@master:~/stack$ docker service rm webserver-nginx_webserver
+webserver-nginx_webserver
+
+# fazer novamente o deploy
+
+vagrant@master:~/stack$ docker stack deploy -c webserver.yml webserver-nginx
+Creating service webserver-nginx_webserver
+
+# continua com aquela erro do 0/3 que deveria ser 3/3 o correto
+
+vagrant@master:~/stack$ docker stack services webserver-nginx
+ID             NAME                        MODE      REPLICAS   IMAGE                                            PORTS
+8gtkqcvn2pym   webserver-nginx_webserver   global    0/3        resgistry.docker-dca.example:5000/nginx:latest   *:80->80/tcp
+
+vagrant@master:~/stack$ docker stack rm webserver-nginx
+Removing service webserver-nginx_webserver
+Removing network webserver-nginx_default
+
+vagrant@master:~/stack$ docker stack ls
+NAME      SERVICES   ORCHESTRATOR
+
+# CONSTRAINT
+
+version: '3.9'
+  
+services:
+  webserver:
+    image: resgistry.docker-dca.example:5000/nginx
+    hostname: webserver
+    ports:
+      - 80:80
+    deploy:
+      mode: replicated
+      replicas: 4
+      placement:
+        constraints:
+          - node.role==manager      
+      restart_policy:
+        condition: on-failure
+
+vagrant@master:~/stack$ docker stack deploy -c webserver.yml nginx-webserver
+Creating network nginx-webserver_default
+Creating service nginx-webserver_webserver 
+
+vagrant@master:~/stack$ docker stack services nginx-webserver
+ID             NAME                        MODE         REPLICAS   IMAGE                                            PORTS
+tnmub957us8k   nginx-webserver_webserver   replicated   0/4        resgistry.docker-dca.example:5000/nginx:latest   *:80->80/tcp
+
+vagrant@master:~/stack$ docker stack ps nginx-webserver
+ID             NAME                          IMAGE                                            NODE                        DESIRED STATE   CURRENT STATE                  ERROR     PORTS
+ffqkie1og5yd   nginx-webserver_webserver.1   resgistry.docker-dca.example:5000/nginx:latest   master.docker-dca.example   Running         Preparing about a minute ago             
+ltxwb84gdxgl   nginx-webserver_webserver.2   resgistry.docker-dca.example:5000/nginx:latest   master.docker-dca.example   Running         Preparing about a minute ago             
+kpybmnwarlyg   nginx-webserver_webserver.3   resgistry.docker-dca.example:5000/nginx:latest   master.docker-dca.example   Running         Preparing about a minute ago             
+l4fpxvq6h7dk   nginx-webserver_webserver.4   resgistry.docker-dca.example:5000/nginx:latest   master.docker-dca.example   Running         Preparing about a minute ago 
+
+vagrant@master:~/stack$ docker service ls
+ID             NAME                        MODE         REPLICAS   IMAGE                                            PORTS
+tnmub957us8k   nginx-webserver_webserver   replicated   0/4        resgistry.docker-dca.example:5000/nginx:latest   *:80->80/tcp
+
+vagrant@master:~/stack$ docker service inspect nginx-webserver_webserver --pretty
+
+ID:             tnmub957us8k2l5u9vf3esgcf
+Name:           nginx-webserver_webserver
+Labels:
+ com.docker.stack.image=resgistry.docker-dca.example:5000/nginx
+ com.docker.stack.namespace=nginx-webserver
+Service Mode:   Replicated
+ Replicas:      4
+Placement:
+ Constraints:   [node.role==manager]
+UpdateConfig:
+ Parallelism:   1
+ On failure:    pause
+ Monitoring Period: 5s
+ Max failure ratio: 0
+ Update order:      stop-first
+RollbackConfig:
+ Parallelism:   1
+ On failure:    pause
+ Monitoring Period: 5s
+ Max failure ratio: 0
+ Rollback order:    stop-first
+ContainerSpec:
+ Image:         resgistry.docker-dca.example:5000/nginx:latest
+Resources:
+Networks: nginx-webserver_default 
+Endpoint Mode:  vip
+Ports:
+ PublishedPort = 80
+  Protocol = tcp
+  TargetPort = 80
+  PublishMode = ingress
+
+
+# LABEL  
+
+vagrant@master:~/stack$ docker node inspect --pretty master.docker-dca.example
+ID:                     t5f9scytait2ac5f0bo11czw4
+Hostname:               master.docker-dca.example
+Joined at:              2021-09-09 19:21:54.485196051 +0000 utc
+Status:
+ State:                 Ready
+ Availability:          Active
+ Address:               10.20.20.100
+Manager Status:
+ Address:               10.20.20.100:2377
+ Raft Status:           Reachable
+ Leader:                Yes
+Platform:
+ Operating System:      linux
+ Architecture:          x86_64
+Resources:
+ CPUs:                  2
+ Memory:                1.946GiB
+Plugins:
+ Log:           awslogs, fluentd, gcplogs, gelf, journald, json-file, local, logentries, splunk, syslog
+ Network:               bridge, host, ipvlan, macvlan, null, overlay
+ Volume:                local, trajano/nfs-volume-plugin:latest
+Engine Version:         20.10.8
+TLS Info:
+ TrustRoot:
+-----BEGIN CERTIFICATE-----
+MIIBazCCARCgAwIBAgIUZAqWnTb58c9Bs4BNdLKsAQsQQGMwCgYIKoZIzj0EAwIw
+EzERMA8GA1UEAxMIc3dhcm0tY2EwHhcNMjEwOTA5MTkxNzAwWhcNNDEwOTA0MTkx
+NzAwWjATMREwDwYDVQQDEwhzd2FybS1jYTBZMBMGByqGSM49AgEGCCqGSM49AwEH
+A0IABGdlCwuav24cfUfoncrDsxzeWdpr5Zu9dR53W8qNkc3X+FIVpPkOWmNhcPYS
+vlcWL6l9dRxhlEIzAY+bVvoX4sWjQjBAMA4GA1UdDwEB/wQEAwIBBjAPBgNVHRMB
+Af8EBTADAQH/MB0GA1UdDgQWBBTpP9TWoLdZO1eZI8rGJkUAxp3m+jAKBggqhkjO
+PQQDAgNJADBGAiEAhqjb76gNeZ/0yMnPqo6qU3084Q8+I9KVa2tA/mMHx+ICIQDl
+KIx0M15WLsv79imvirTLCZBPf2oq5c344xbvBkx13A==
+-----END CERTIFICATE-----
+
+ Issuer Subject:        MBMxETAPBgNVBAMTCHN3YXJtLWNh
+ Issuer Public Key:     MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEZ2ULC5q/bhx9R+idysOzHN5Z2mvlm711Hndbyo2Rzdf4UhWk+Q5aY2Fw9hK+VxYvqX11HGGUQjMBj5tW+hfixQ==
+
+ # ADD LABEL
+
+ vagrant@master:~/stack$ docker node update --label-add os=ubuntu18.04 node01.docker-dca.example
+node01.docker-dca.example
+
+vagrant@master:~/stack$ docker node inspect --pretty node01.docker-dca.example
+ID:                     yd4bobxw2dzyrfmbiwhtdci2s
+Labels:
+ - os=ubuntu18.04
+Hostname:               node01.docker-dca.example
+Joined at:              2021-09-09 19:23:53.562013287 +0000 utc
+Status:
+ State:                 Ready
+ Availability:          Active
+ Address:               10.20.20.110
+Platform:
+ Operating System:      linux
+ Architecture:          x86_64
+Resources:
+ CPUs:                  2
+ Memory:                984.9MiB
+Plugins:
+ Log:           awslogs, fluentd, gcplogs, gelf, journald, json-file, local, logentries, splunk, syslog
+ Network:               bridge, host, ipvlan, macvlan, null, overlay
+ Volume:                local, trajano/nfs-volume-plugin:latest
+Engine Version:         20.10.8
+TLS Info:
+ TrustRoot:
+-----BEGIN CERTIFICATE-----
+MIIBazCCARCgAwIBAgIUZAqWnTb58c9Bs4BNdLKsAQsQQGMwCgYIKoZIzj0EAwIw
+EzERMA8GA1UEAxMIc3dhcm0tY2EwHhcNMjEwOTA5MTkxNzAwWhcNNDEwOTA0MTkx
+NzAwWjATMREwDwYDVQQDEwhzd2FybS1jYTBZMBMGByqGSM49AgEGCCqGSM49AwEH
+A0IABGdlCwuav24cfUfoncrDsxzeWdpr5Zu9dR53W8qNkc3X+FIVpPkOWmNhcPYS
+vlcWL6l9dRxhlEIzAY+bVvoX4sWjQjBAMA4GA1UdDwEB/wQEAwIBBjAPBgNVHRMB
+Af8EBTADAQH/MB0GA1UdDgQWBBTpP9TWoLdZO1eZI8rGJkUAxp3m+jAKBggqhkjO
+PQQDAgNJADBGAiEAhqjb76gNeZ/0yMnPqo6qU3084Q8+I9KVa2tA/mMHx+ICIQDl
+KIx0M15WLsv79imvirTLCZBPf2oq5c344xbvBkx13A==
+-----END CERTIFICATE-----
+
+ Issuer Subject:        MBMxETAPBgNVBAMTCHN3YXJtLWNh
+ Issuer Public Key:     MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEZ2ULC5q/bhx9R+idysOzHN5Z2mvlm711Hndbyo2Rzdf4UhWk+Q5aY2Fw9hK+VxYvqX11HGGUQjMBj5tW+hfixQ==
+
+vagrant@master:~/stack$ docker node update --label-add disck=ssd node01.docker-dca.example
+node01.docker-dca.example
+vagrant@master:~/stack$ docker node update --label-add disk=ssd node01.docker-dca.example
+node01.docker-dca.example
+vagrant@master:~/stack$ docker node update --label-add tipo=xablau node01.docker-dca.example
+node01.docker-dca.example
+
+vagrant@master:~/stack$ docker node inspect --pretty node01.docker-dca.example
+ID:                     yd4bobxw2dzyrfmbiwhtdci2s
+Labels:
+ - disck=ssd
+ - disk=ssd
+ - os=ubuntu18.04
+ - tipo=xablau
+
+ vagrant@master:~/stack$ docker node update --label-add location=us-east1 node01.docker-dca.example
+node01.docker-dca.example
+
+vagrant@master:~/stack$ docker node inspect --pretty node01.docker-dca.example
+ID:                     yd4bobxw2dzyrfmbiwhtdci2s
+Labels:
+ - disck=ssd
+ - disk=ssd
+ - location=us-east1
+ - os=ubuntu18.04
+ - tipo=xablau
+
+version: '3.9'
+  
+services:
+  webserver:
+    image: resgistry.docker-dca.example:5000/nginx
+    hostname: webserver
+    ports:
+      - 80:80
+    deploy:
+      mode: replicated
+      replicas: 4
+      placement:
+        constraints:
+          - node.role==worker
+          - node.lables.os==ubuntu18.04
+          - node.lables.location==us-east1
+      restart_policy:
+        condition: on-failure
+
+vagrant@master:~/stack$ docker stack deploy -c webserver.yml nginx-webserver
+Updating service nginx-webserver_webserver (id: tnmub957us8k2l5u9vf3esgcf)
+failed to update service nginx-webserver_webserver: Error response from daemon: rpc error: code = Unknown desc = constraint expected one operator from ==, !=   
+
+
+vagrant@master:~/stack$ docker stack rm nginx-webserver
+Removing service nginx-webserver_webserver
+Removing network nginx-webserver_default
+
+vagrant@master:~/stack$ docker stack deploy -c webserver.yml nginx-webserver
+Creating network nginx-webserver_default
+Creating service nginx-webserver_webserver
+
+vagrant@master:~/stack$ docker stack services nginx-webserver
+ID             NAME                        MODE         REPLICAS   IMAGE                                            PORTS
+dzf5g0wrsn0u   nginx-webserver_webserver   replicated   0/4        resgistry.docker-dca.example:5000/nginx:latest   *:80->80/tcp
+
+
+vagrant@master:~/stack$ docker stack ps nginx-webserver
+ID             NAME                          IMAGE                                            NODE      DESIRED STATE   CURRENT STATE                ERROR                              PORTS
+juv0n7a4zbx3   nginx-webserver_webserver.1   resgistry.docker-dca.example:5000/nginx:latest             Running         Pending about a minute ago   "no suitable node (scheduling …"   
+zj5q8mj4jaq0   nginx-webserver_webserver.2   resgistry.docker-dca.example:5000/nginx:latest             Running         Pending about a minute ago   "no suitable node (scheduling …"   
+n2rw1xmnznre   nginx-webserver_webserver.3   resgistry.docker-dca.example:5000/nginx:latest             Running         Pending about a minute ago   "no suitable node (scheduling …"   
+a826cdg5k9mh   nginx-webserver_webserver.4   resgistry.docker-dca.example:5000/nginx:latest             Running         Pending about a minute ago   "no suitable node (scheduling …"
+
+vagrant@master:~/stack$ docker stack rm nginx-webserver
+Removing service nginx-webserver_webserver
+Removing network nginx-webserver_default
+
+# não consegui erro ******** no YML
+
+
+version: "3.9"
+
+volumes:
+  mysql_db:
+
+networks:
+  wp_overlay:
+
+services:
+  wordpress:
+    image: registry.docker-dca.example:5000/wordpress
+    ports:
+      - 8080:80
+    environment:
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_USER: wpuser
+      WORDPRESS_DB_PASSWORD: caiodelgadonew@youtube
+      WORDPRESS_DB_NAME: wordpress
+    networks:
+      - wp_overlay
+    deploy:
+      mode: replicated
+      replicas: 2
+      restart_policy:
+        codition: on-failure
+
+db:
+  image: resgistry.docker-dca.example:5000/mysql:5.7
+  volumes:
+    - mysql_db:/var/lib/mysql
+  environment:
+    MYSQL_DATABASE: wordpress
+    MYSQL_USER: wpuser
+    MYSQL_PASSWORD: caiodelgadonew@youtube
+    MYSQL_RANDOM_ROOT_PASSWORD: '1'
+  networks:
+    - wp_overlay
+  deploy:
+    mode: replicated
+    replicas: 1
+    placenment:
+      constraints:
+        - node.role==manager
+    restart_policy:
+      codition: on-failure
+
+1:59:16      
