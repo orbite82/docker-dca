@@ -1,0 +1,28 @@
+version: "3.9"
+
+networks:
+  proxy:
+    external: true
+
+services:
+
+  supermario:
+    image: registry.docker-dca.example:5000/caiodelgadonew/docker-supermario
+    networks:
+      - proxy
+    deploy:
+      mode: replicated
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+      resources:
+        limits:
+          cpus: "1"
+          memory: 100M
+        reservations:
+          cpu: "0.5"
+          memory: 60M
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.game.rule=Host('supermario.docker-dca.example')"
+        - "traefik.http.services.game.loadbalancer.server.port=8080"          

@@ -7013,7 +7013,7 @@ services:
       mode: replicated
       replicas: 2
       restart_policy:
-        codition: on-failure
+        condition: on-failure
 
 db:
   image: resgistry.docker-dca.example:5000/mysql:5.7
@@ -7033,6 +7033,26 @@ db:
       constraints:
         - node.role==manager
     restart_policy:
-      codition: on-failure
+      condition: on-failure
 
-1:59:16      
+1:59:16  
+
+# comando pra uso de memoria e uso do container
+docker stats
+
+# pacotes para trabalhar com apache
+# AB --> Apache Benchmark --> teste http
+
+vagrant@master:~/stack$ sudo apt-get install apache2-utils -y
+
+# teste de extress no apache
+ab -n 10000 -c 100 http://master.docker-dca.example:8080/
+
+
+vagrant@master:~/stack$ docker network create -d overlay proxy
+uec2kpkf4490rngb7nvxw46p4
+
+vagrant@master:~/stack$ vim traefik.yml
+vagrant@master:~/stack$ vim supermario.yml
+
+docker scale supermario_supermario=10
