@@ -5265,7 +5265,7 @@ vagrant@registry:~$ curl http://registry.docker-dca.example:5000/v2/wordpress/ta
 vagrant@registry:~$ docker image tag alpine:latest registry.docker-dca.example:5000/alpine:teste
 vagrant@registry:~$ docker image tag alpine:latest registry.docker-dca.example:5000/alpine:abc
 vagrant@registry:~$ docker image tag alpine:latest registry.docker-dca.example:5000/alpine:123
-vagrant@registry:~$ docker image tag alpine:latest registry.docker-dca.example:5000/alpine:devop
+vagrant@registry:~$ docker image tag alpine:latest registry.docker-dca.example:5000/alpine:devops
 
 vagrant@registry:~$ docker image push registry.docker-dca.example:5000/alpine:devops
 The push refers to repository [registry.docker-dca.example:5000/alpine]
@@ -7056,3 +7056,30 @@ vagrant@master:~/stack$ vim traefik.yml
 vagrant@master:~/stack$ vim supermario.yml
 
 docker scale supermario_supermario=10
+
+===========================================================================================
+
+# AULA 11 : Docker DCA 11 - Monitoramento (Prometheus + Node Exporter + Grafana + Cadvisor)  https://www.youtube.com/watch?v=JhiBBbturTI&t=5s
+
+# PROMETHEUS
+
+# ---> time series database
+
+# node-exporter
+# ---> SCRAPPER (raspagem de metricas)
+
+# CAdvisor / Container Advisor
+# ---> exporta as mestricas do container
+
+# Grafana
+# 
+
+vagrant@master:~$ vim ~/monitoring/config/prometheus.yml
+
+vagrant@master:~$ vim ~/monitoring/monitoring.yml
+
+vagrant@master:~$  docker stack deploy -c ~/monitoring/monitoring.yml monitoring
+
+# erro
+vagrant@master:~/monitoring/config$ docker stack deploy -c monitoring.yml monitoring
+services.cadvisor Additional property node-exporter is not allowed
