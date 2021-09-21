@@ -7083,3 +7083,644 @@ vagrant@master:~$  docker stack deploy -c ~/monitoring/monitoring.yml monitoring
 # erro
 vagrant@master:~/monitoring/config$ docker stack deploy -c monitoring.yml monitoring
 services.cadvisor Additional property node-exporter is not allowed
+
+===================================================================================
+
+# AULA 12: Docker DCA 12 - Tools ( PwD , Swarmpit, Portainer, Harbor e Docker Machine)  https://www.youtube.com/watch?v=2mEvFr51lKs
+
+===================================================================================
+
+# AULA 13: Docker DCA 13 - Kubernetes https://www.youtube.com/watch?v=PPBjWvUSgSE&t=7s
+
+Minekube --> Mini Kubernetes
+2vCPUS
+2GB Memoria Livre 
+20GB Disco 
+internet 
+Container ou VM (Docker HyperV Virtualbox)
+
+
+┌─[orbite]@[Navita]:~/docker-dca
+└──> $ microk8s kubectl apply -f pod.yml 
+pod/demo created
+
+┌─[orbite]@[Navita]:~/docker-dca
+└──> $ microk8s kubectl get pods
+NAME   READY   STATUS    RESTARTS   AGE
+demo   1/1     Running   0          20s
+
+┌─[orbite]@[Navita]:~/docker-dca
+└──> $ microk8s kubectl get all
+NAME       READY   STATUS    RESTARTS   AGE
+pod/demo   1/1     Running   0          107s
+
+NAME                 TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)   AGE
+service/kubernetes   ClusterIP   10.152.183.1   <none>        443/TCP   4d16h
+
+┌─[orbite]@[Navita]:~/docker-dca
+└──> $ microk8s kubectl logs demo
+PING 8.8.8.8 (8.8.8.8): 56 data bytes
+64 bytes from 8.8.8.8: seq=0 ttl=115 time=7.576 ms
+64 bytes from 8.8.8.8: seq=1 ttl=115 time=7.509 ms
+64 bytes from 8.8.8.8: seq=2 ttl=115 time=7.419 ms
+64 bytes from 8.8.8.8: seq=3 ttl=115 time=7.462 ms
+64 bytes from 8.8.8.8: seq=4 ttl=115 time=7.157 ms
+
+┌─[orbite]@[Navita]:~/docker-dca
+└──> $ microk8s kubectl logs -f demo
+PING 8.8.8.8 (8.8.8.8): 56 data bytes
+64 bytes from 8.8.8.8: seq=0 ttl=115 time=7.576 ms
+64 bytes from 8.8.8.8: seq=1 ttl=115 time=7.509 ms
+64 bytes from 8.8.8.8: seq=2 ttl=115 time=7.419 ms
+64 bytes from 8.8.8.8: seq=3 ttl=115 time=7.462 ms
+
+microk8s kubectl delete -f pod.yml
+microk8s kubectl delete pod demo
+
+┌─[orbite]@[Navita]:~/docker-dca
+└──> $ microk8s kubectl delete -f pod.yml
+pod "demo" deleted
+
+┌─[orbite]@[Navita]:~/docker-dca
+└──> $ microk8s kubectl apply -f multi-container.yml 
+pod/multi-container created
+
+┌─[orbite]@[Navita]:~/docker-dca
+└──> $ microk8s kubectl get pods
+NAME              READY   STATUS              RESTARTS   AGE
+multi-container   0/2     ContainerCreating   0          19s
+
+┌─[orbite]@[Navita]:~/docker-dca
+└──> $ microk8s kubectl get pods
+NAME              READY   STATUS     RESTARTS   AGE
+multi-container   1/2     NotReady   0          34s
+
+┌─[orbite]@[Navita]:~/docker-dca
+└──> $ microk8s kubectl describe pod multi-container
+Name:         multi-container
+Namespace:    default
+Priority:     0
+Node:         navita/192.168.1.104
+Start Time:   Tue, 21 Sep 2021 10:50:55 -0300
+Labels:       <none>
+Annotations:  cni.projectcalico.org/podIP: 10.1.41.181/32
+              cni.projectcalico.org/podIPs: 10.1.41.181/32
+Status:       Running
+IP:           10.1.41.181
+IPs:
+  IP:  10.1.41.181
+Containers:
+  nginx-container:
+    Container ID:   containerd://3a2caa6e2d5b5957e1273687489b90138a270313ccc20b2d69b68826ecc97ca6
+    Image:          nginx
+    Image ID:       docker.io/library/nginx@sha256:853b221d3341add7aaadf5f81dd088ea943ab9c918766e295321294b035f3f3e
+    Port:           <none>
+    Host Port:      <none>
+    State:          Running
+      Started:      Tue, 21 Sep 2021 10:51:07 -0300
+    Ready:          True
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:
+      /usr/share/nginx/html from shared-data (rw)
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-wng86 (ro)
+  debian-container:
+    Container ID:  containerd://8cff3b5863d6e74085d6ee56f7dfa73bb48c28f7fc049b4247a2d75bb994f457
+    Image:         debian
+    Image ID:      docker.io/library/debian@sha256:08db48d59c0a91afb802ebafc921be3154e200c452e4d0b19634b426b03e0e25
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      /bin/sh
+    Args:
+      -c
+      echo Hello from the debian container > /pod-data/index.html
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Tue, 21 Sep 2021 10:51:18 -0300
+      Finished:     Tue, 21 Sep 2021 10:51:18 -0300
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:
+      /pod-data from shared-data (rw)
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-wng86 (ro)
+Conditions:
+  Type              Status
+  Initialized       True 
+  Ready             False 
+  ContainersReady   False 
+  PodScheduled      True 
+Volumes:
+  shared-data:  
+   #Type:       EmptyDir (a temporary directory that shares a pod's lifetime)
+    Medium:     
+    SizeLimit:  <unset>
+  kube-api-access-wng86:
+    Type:                    Projected (a volume that contains injected data from multiple sources)
+    TokenExpirationSeconds:  3607
+    ConfigMapName:           kube-root-ca.crt
+    ConfigMapOptional:       <nil>
+    DownwardAPI:             true
+QoS Class:                   BestEffort
+Node-Selectors:              <none>
+Tolerations:                 node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                             node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+Events:
+  Type    Reason     Age   From               Message
+  ----    ------     ----  ----               -------
+  Normal  Scheduled  110s  default-scheduler  Successfully assigned default/multi-container to navita
+  Normal  Pulling    110s  kubelet            Pulling image "nginx"
+  Normal  Pulled     100s  kubelet            Successfully pulled image "nginx" in 9.830591344s
+  Normal  Created    98s   kubelet            Created container nginx-container
+  Normal  Started    98s   kubelet            Started container nginx-container
+  Normal  Pulling    98s   kubelet            Pulling image "debian"
+  Normal  Pulled     88s   kubelet            Successfully pulled image "debian" in 10.269683697s
+  Normal  Created    88s   kubelet            Created container debian-container
+  Normal  Started    87s   kubelet            Started container debian-container 
+
+
+┌─[orbite]@[Navita]:~/docker-dca
+└──> $ microk8s kubectl describe pod multi-container
+Name:         multi-container
+Namespace:    default
+Priority:     0
+Node:         navita/192.168.1.104
+Start Time:   Tue, 21 Sep 2021 10:50:55 -0300
+Labels:       <none>
+Annotations:  cni.projectcalico.org/podIP: 10.1.41.181/32
+              cni.projectcalico.org/podIPs: 10.1.41.181/32
+Status:       Running
+IP:           10.1.41.181
+IPs:
+  IP:  10.1.41.181
+Containers:
+  nginx-container:
+    Container ID:   containerd://3a2caa6e2d5b5957e1273687489b90138a270313ccc20b2d69b68826ecc97ca6
+    Image:          nginx
+    Image ID:       docker.io/library/nginx@sha256:853b221d3341add7aaadf5f81dd088ea943ab9c918766e295321294b035f3f3e
+    Port:           <none>
+    Host Port:      <none>
+    State:          Running
+      Started:      Tue, 21 Sep 2021 10:51:07 -0300
+    Ready:          True
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:
+      /usr/share/nginx/html from shared-data (rw)
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-wng86 (ro)
+  debian-container:
+    Container ID:  containerd://8cff3b5863d6e74085d6ee56f7dfa73bb48c28f7fc049b4247a2d75bb994f457
+    Image:         debian
+    Image ID:      docker.io/library/debian@sha256:08db48d59c0a91afb802ebafc921be3154e200c452e4d0b19634b426b03e0e25
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      /bin/sh
+    Args:
+      -c
+      echo Hello from the debian container > /pod-data/index.html
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Tue, 21 Sep 2021 10:51:18 -0300
+      Finished:     Tue, 21 Sep 2021 10:51:18 -0300
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:
+      /pod-data from shared-data (rw)
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-wng86 (ro)
+Conditions:
+  Type              Status
+  Initialized       True 
+  Ready             False 
+  ContainersReady   False 
+  PodScheduled      True 
+Volumes:
+  shared-data:
+    #Type:       EmptyDir (a temporary directory that shares a pod's lifetime)
+    Medium:     
+┌─[orbite]@[Navita]:~/docker-dca
+└──> $ microk8s kubectl get pod multi-container
+NAME              READY   STATUS     RESTARTS   AGE
+multi-container   1/2     NotReady   0          5m31s
+┌─[orbite]@[Navita]:~/docker-dca
+└──> $ microk8s kubectl get pod multi-container --output-yaml
+Error: unknown flag: --output-yaml
+See 'kubectl get --help' for usage.
+┌─[orbite]@[Navita]:~/docker-dca
+└──> $ microk8s kubectl get pod multi-container --output=yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  annotations:
+    cni.projectcalico.org/podIP: 10.1.41.181/32
+    cni.projectcalico.org/podIPs: 10.1.41.181/32
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"v1","kind":"Pod","metadata":{"annotations":{},"name":"multi-container","namespace":"default"},"spec":{"containers":[{"image":"nginx","name":"nginx-container","volumeMounts":[{"mountPath":"/usr/share/nginx/html","name":"shared-data"}]},{"args":["-c","echo Hello from the debian container \u003e /pod-data/index.html"],"command":["/bin/sh"],"image":"debian","name":"debian-container","volumeMounts":[{"mountPath":"/pod-data","name":"shared-data"}]}],"restartPolicy":"Never","volumes":[{"emptyDir":{},"name":"shared-data"}]}}
+  creationTimestamp: "2021-09-21T13:50:55Z"
+  name: multi-container
+  namespace: default
+  resourceVersion: "176856"
+  selfLink: /api/v1/namespaces/default/pods/multi-container
+  uid: d683458b-7400-4dec-9160-ac9231ca7ee0
+spec:
+  containers:
+  - image: nginx
+    imagePullPolicy: Always
+    name: nginx-container
+    resources: {}
+    terminationMessagePath: /dev/termination-log
+    terminationMessagePolicy: File
+    volumeMounts:
+    - mountPath: /usr/share/nginx/html
+      name: shared-data
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: kube-api-access-wng86
+      readOnly: true
+  - args:
+    - -c
+    - echo Hello from the debian container > /pod-data/index.html
+    command:
+    - /bin/sh
+    image: debian
+    imagePullPolicy: Always
+    name: debian-container
+    resources: {}
+    terminationMessagePath: /dev/termination-log
+    terminationMessagePolicy: File
+    volumeMounts:
+    - mountPath: /pod-data
+      name: shared-data
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: kube-api-access-wng86
+      readOnly: true
+  dnsPolicy: ClusterFirst
+  enableServiceLinks: true
+  nodeName: navita
+  preemptionPolicy: PreemptLowerPriority
+  priority: 0
+  restartPolicy: Never
+  schedulerName: default-scheduler
+  securityContext: {}
+  serviceAccount: default
+  serviceAccountName: default
+  terminationGracePeriodSeconds: 30
+  tolerations:
+  - effect: NoExecute
+    key: node.kubernetes.io/not-ready
+    operator: Exists
+    tolerationSeconds: 300
+  - effect: NoExecute
+    key: node.kubernetes.io/unreachable
+    operator: Exists
+    tolerationSeconds: 300
+  volumes:
+  - emptyDir: {}
+    name: shared-data
+  - name: kube-api-access-wng86
+    projected:
+      defaultMode: 420
+      sources:
+      - serviceAccountToken:
+          expirationSeconds: 3607
+          path: token
+      - configMap:
+          items:
+          - key: ca.crt
+            path: ca.crt
+          name: kube-root-ca.crt
+      - downwardAPI:
+          items:
+          - fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace
+            path: namespace
+status:
+  conditions:
+  - lastProbeTime: null
+    lastTransitionTime: "2021-09-21T13:50:55Z"
+    status: "True"
+    type: Initialized
+  - lastProbeTime: null
+    lastTransitionTime: "2021-09-21T13:50:55Z"
+    message: 'containers with unready status: [debian-container]'
+    reason: ContainersNotReady
+    status: "False"
+    type: Ready
+  - lastProbeTime: null
+    lastTransitionTime: "2021-09-21T13:50:55Z"
+    message: 'containers with unready status: [debian-container]'
+    reason: ContainersNotReady
+    status: "False"
+    type: ContainersReady
+  - lastProbeTime: null
+    lastTransitionTime: "2021-09-21T13:50:55Z"
+    status: "True"
+    type: PodScheduled
+  containerStatuses:
+  - containerID: containerd://8cff3b5863d6e74085d6ee56f7dfa73bb48c28f7fc049b4247a2d75bb994f457
+    image: docker.io/library/debian:latest
+    imageID: docker.io/library/debian@sha256:08db48d59c0a91afb802ebafc921be3154e200c452e4d0b19634b426b03e0e25
+    lastState: {}
+    name: debian-container
+    ready: false
+    restartCount: 0
+    started: false
+    state:
+      terminated:
+        containerID: containerd://8cff3b5863d6e74085d6ee56f7dfa73bb48c28f7fc049b4247a2d75bb994f457
+        exitCode: 0
+        finishedAt: "2021-09-21T13:51:18Z"
+        reason: Completed
+        startedAt: "2021-09-21T13:51:18Z"
+  - containerID: containerd://3a2caa6e2d5b5957e1273687489b90138a270313ccc20b2d69b68826ecc97ca6
+    image: docker.io/library/nginx:latest
+    imageID: docker.io/library/nginx@sha256:853b221d3341add7aaadf5f81dd088ea943ab9c918766e295321294b035f3f3e
+    lastState: {}
+    name: nginx-container
+    ready: true
+    restartCount: 0
+    started: true
+    state:
+      running:
+        startedAt: "2021-09-21T13:51:07Z"
+  hostIP: 192.168.1.104
+  phase: Running
+  podIP: 10.1.41.181
+  podIPs:
+  - ip: 10.1.41.181
+  qosClass: BestEffort
+  startTime: "2021-09-21T13:50:55Z"
+
+┌─[orbite]@[Navita]:~/docker-dca
+└──> $ microk8s kubectl logs multi-container
+error: a container name must be specified for pod multi-container, choose one of: [nginx-container debian-container]
+
+┌─[orbite]@[Navita]:~/docker-dca
+└──> $ microk8s kubectl logs multi-container -c nginx-container
+/docker-entrypoint.sh: /docker-entrypoint.d/ is not empty, will attempt to perform configuration
+/docker-entrypoint.sh: Looking for shell scripts in /docker-entrypoint.d/
+/docker-entrypoint.sh: Launching /docker-entrypoint.d/10-listen-on-ipv6-by-default.sh
+10-listen-on-ipv6-by-default.sh: info: Getting the checksum of /etc/nginx/conf.d/default.conf
+10-listen-on-ipv6-by-default.sh: info: Enabled listen on IPv6 in /etc/nginx/conf.d/default.conf
+/docker-entrypoint.sh: Launching /docker-entrypoint.d/20-envsubst-on-templates.sh
+/docker-entrypoint.sh: Launching /docker-entrypoint.d/30-tune-worker-processes.sh
+/docker-entrypoint.sh: Configuration complete; ready for start up
+2021/09/21 13:51:07 [notice] 1#1: using the "epoll" event method
+2021/09/21 13:51:07 [notice] 1#1: nginx/1.21.3
+2021/09/21 13:51:07 [notice] 1#1: built by gcc 8.3.0 (Debian 8.3.0-6) 
+2021/09/21 13:51:07 [notice] 1#1: OS: Linux 5.11.0-34-generic
+2021/09/21 13:51:07 [notice] 1#1: getrlimit(RLIMIT_NOFILE): 65536:65536
+2021/09/21 13:51:07 [notice] 1#1: start worker processes
+2021/09/21 13:51:07 [notice] 1#1: start worker process 30
+2021/09/21 13:51:07 [notice] 1#1: start worker process 31
+2021/09/21 13:51:07 [notice] 1#1: start worker process 32
+2021/09/21 13:51:07 [notice] 1#1: start worker process 33
+2021/09/21 13:51:07 [notice] 1#1: start worker process 34
+2021/09/21 13:51:07 [notice] 1#1: start worker process 35
+2021/09/21 13:51:07 [notice] 1#1: start worker process 36
+2021/09/21 13:51:07 [notice] 1#1: start worker process 37
+
+# executando dentro do pod
+┌─[orbite]@[Navita]:~/docker-dca
+└──> $ microk8s kubectl exec -it multi-container -c nginx-container -- /bin/bash
+root@multi-container:/#
+
+┌─[orbite]@[Navita]:~/docker-dca
+└──> $ microk8s kubectl exec -it multi-container -c nginx-container -- /bin/bash
+root@multi-container:/# curl localhost
+Hello from the debian container
+root@multi-container:/#
+
+# AUXILIAR --> debian-container
+# PRINCIPAL --> nginx-container
+
+ClusterIP / NodePort
+
+# ClusterIP --> Expoe o serviço a um IP interno ao lcuster
+
+# NodePort --> Expoe o serviço em TODOS os nós
+
+┌─[orbite]@[Navita]:~/docker-dca
+└──> $ microk8s kubectl apply -f nginx-pod.yml 
+pod/nginx created
+
+┌─[orbite]@[Navita]:~/docker-dca
+└──> $ microk8s kubectl get pods
+NAME              READY   STATUS     RESTARTS   AGE
+multi-container   1/2     NotReady   0          44m
+nginx             1/1     Running    0          15s
+
+┌─[orbite]@[Navita]:~/docker-dca
+└──> $ microk8s kubectl delete pod multi-container
+pod "multi-container" deleted
+
+┌─[orbite]@[Navita]:~/docker-dca
+└──> $ microk8s kubectl get all
+NAME        READY   STATUS    RESTARTS   AGE
+pod/nginx   1/1     Running   0          109s
+
+NAME                 TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)   AGE
+service/kubernetes   ClusterIP   10.152.183.1   <none>        443/TCP   4d17h
+
+┌─[orbite]@[Navita]:~/docker-dca
+└──> $ microk8s kubectl apply -f nginx-svc.yml 
+service/nginx-dca created
+
+┌─[orbite]@[Navita]:~/docker-dca
+└──> $ microk8s kubectl get services
+NAME         TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)   AGE
+kubernetes   ClusterIP   10.152.183.1    <none>        443/TCP   4d17h
+nginx-dca    ClusterIP   10.152.183.61   <none>        80/TCP    21s
+
+┌─[orbite]@[Navita]:~/docker-dca
+└──> $ microk8s kubectl describe services nginx-dca
+Name:              nginx-dca
+Namespace:         default
+Labels:            <none>
+Annotations:       <none>
+Selector:          <none>
+Type:              ClusterIP
+IP Family Policy:  SingleStack
+IP Families:       IPv4
+IP:                10.152.183.61
+IPs:               10.152.183.61
+Port:              <unset>  80/TCP
+TargetPort:        80/TCP
+Endpoints:         <none>
+Session Affinity:  None
+Events:            <none>
+
+# alterado nginx-svc.yml 
+
+┌─[orbite]@[Navita]:~/docker-dca
+└──> $ microk8s kubectl apply -f nginx-svc.yml 
+service/nginx-dca configured
+
+┌─[orbite]@[Navita]:~/docker-dca
+└──> $ microk8s kubectl describe services nginx-dca
+Name:              nginx-dca
+Namespace:         default
+Labels:            <none>
+Annotations:       <none>
+Selector:          app=hello-world
+Type:              ClusterIP
+IP Family Policy:  SingleStack
+IP Families:       IPv4
+IP:                10.152.183.61
+IPs:               10.152.183.61
+Port:              <unset>  80/TCP
+TargetPort:        80/TCP
+Endpoints:         <none>
+Session Affinity:  None
+Events:            <none>
+
+
+┌─[orbite]@[Navita]:~/docker-dca
+└──> $ microk8s kubectl delete -f nginx-svc.yml
+service "nginx-dca" deleted
+
+┌─[orbite]@[Navita]:~/docker-dca
+└──> $ microk8s kubectl apply -f nginx-svc-nodeport.yml 
+service/nginx-dca created
+
+┌─[orbite]@[Navita]:~/docker-dca
+└──> $ microk8s kubectl get services
+NAME         TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)          AGE
+kubernetes   ClusterIP   10.152.183.1     <none>        443/TCP          4d21h
+nginx-dca    NodePort    10.152.183.252   <none>        8080:30033/TCP   22s
+
+┌─[orbite]@[Navita]:~/docker-dca
+└──> $ microk8s kubectl describe service nginx-dca
+Name:                     nginx-dca
+Namespace:                default
+Labels:                   <none>
+Annotations:              <none>
+Selector:                 app=hello-world
+Type:                     NodePort
+IP Family Policy:         SingleStack
+IP Families:              IPv4
+IP:                       10.152.183.252
+IPs:                      10.152.183.252
+Port:                     <unset>  8080/TCP
+TargetPort:               80/TCP
+NodePort:                 <unset>  30033/TCP
+Endpoints:                <none>
+Session Affinity:         None
+External Traffic Policy:  Cluster
+Events:                   <none>
+
+┌─[orbite]@[Navita]:~/docker-dca
+└──> $ microk8s kubectl delete -f nginx-pod.yml
+pod "nginx" deleted
+
+┌─[orbite]@[Navita]:~/docker-dca
+└──> $ microk8s kubectl delete service/nginx-dca
+service "nginx-dca" deleted
+
+# Deployment
+
+Deployment --> Quero x pods com Y containers conectados pela rede 2
+
+# ReplicaSet
+
+Replicaset --> Replicas do Swarm
+
+┌─[orbite]@[Navita]:~/docker-dca
+└──> $ microk8s kubectl apply -f nginx-deploy.yml
+deployment.apps/nginx-deployment unchanged
+
+┌─[orbite]@[Navita]:~/docker-dca
+└──> $ microk8s kubectl get deployments
+NAME               READY   UP-TO-DATE   AVAILABLE   AGE
+nginx-deployment   3/3     3            3           24s
+
+┌─[orbite]@[Navita]:~/docker-dca
+└──> $ microk8s kubectl get pod
+NAME                                READY   STATUS    RESTARTS   AGE
+nginx-deployment-58b7d66d67-g55p8   1/1     Running   0          55s
+nginx-deployment-58b7d66d67-972xh   1/1     Running   0          55s
+nginx-deployment-58b7d66d67-gfjzl   1/1     Running   0          55s
+
+┌─[orbite]@[Navita]:~/docker-dca
+└──> $ microk8s kubectl get all
+NAME                                    READY   STATUS    RESTARTS   AGE
+pod/nginx-deployment-58b7d66d67-g55p8   1/1     Running   0          74s
+pod/nginx-deployment-58b7d66d67-972xh   1/1     Running   0          74s
+pod/nginx-deployment-58b7d66d67-gfjzl   1/1     Running   0          74s
+
+NAME                 TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)   AGE
+service/kubernetes   ClusterIP   10.152.183.1   <none>        443/TCP   4d22h
+
+NAME                               READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/nginx-deployment   3/3     3            3           74s
+
+NAME                                          DESIRED   CURRENT   READY   AGE
+replicaset.apps/nginx-deployment-58b7d66d67   3         3         3       74s
+
+┌─[orbite]@[Navita]:~/docker-dca
+└──> $ microk8s kubectl describe deployment nginx-deployment
+Name:                   nginx-deployment
+Namespace:              default
+CreationTimestamp:      Tue, 21 Sep 2021 16:01:46 -0300
+Labels:                 app=nginx-dca
+Annotations:            deployment.kubernetes.io/revision: 1
+Selector:               app=nginx-dca
+Replicas:               3 desired | 3 updated | 3 total | 3 available | 0 unavailable
+StrategyType:           RollingUpdate
+MinReadySeconds:        0
+RollingUpdateStrategy:  25% max unavailable, 25% max surge
+Pod Template:
+  Labels:  app=nginx-dca
+  Containers:
+   nginx-dca:
+    Image:        nginx
+    Port:         80/TCP
+    Host Port:    0/TCP
+    Environment:  <none>
+    Mounts:       <none>
+  Volumes:        <none>
+Conditions:
+  Type           Status  Reason
+  ----           ------  ------
+  Available      True    MinimumReplicasAvailable
+  Progressing    True    NewReplicaSetAvailable
+OldReplicaSets:  <none>
+NewReplicaSet:   nginx-deployment-58b7d66d67 (3/3 replicas created)
+Events:
+  Type    Reason             Age   From                   Message
+  ----    ------             ----  ----                   -------
+  Normal  ScalingReplicaSet  104s  deployment-controller  Scaled up replica set nginx-deployment-58b7d66d67 to 3
+
+┌─[orbite]@[Navita]:~/docker-dca
+└──> $ microk8s kubectl delete pod -l app=nginx-dca
+pod "nginx-deployment-58b7d66d67-g55p8" deleted
+pod "nginx-deployment-58b7d66d67-972xh" deleted
+pod "nginx-deployment-58b7d66d67-gfjzl" deleted  
+
+┌─[orbite]@[Navita]:~/docker-dca
+└──> $ microk8s kubectl get all -l app=nginx-dca
+NAME                                    READY   STATUS    RESTARTS   AGE
+pod/nginx-deployment-58b7d66d67-w9mw4   1/1     Running   0          57s
+pod/nginx-deployment-58b7d66d67-7cnzj   1/1     Running   0          57s
+pod/nginx-deployment-58b7d66d67-4lb2p   1/1     Running   0          57s
+
+NAME                               READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/nginx-deployment   3/3     3            3           13m
+
+NAME                                          DESIRED   CURRENT   READY   AGE
+replicaset.apps/nginx-deployment-58b7d66d67   3         3         3       13m
+
+# apagar os pods sem o replica set montar novos pods!
+
+┌─[orbite]@[Navita]:~/docker-dca
+└──> $ microk8s kubectl delete -f nginx-deploy.yml
+deployment.apps "nginx-deployment" deleted
+
+1:47 parei
+  
+
+
