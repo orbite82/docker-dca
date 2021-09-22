@@ -7720,7 +7720,212 @@ replicaset.apps/nginx-deployment-58b7d66d67   3         3         3       13m
 └──> $ microk8s kubectl delete -f nginx-deploy.yml
 deployment.apps "nginx-deployment" deleted
 
-1:47 parei
-  
+# ConfigMap e Secrets
+
+ConfigMap --> Mapeamento de configuração (Dados não Criptografados)
+Secrets --> Dados Sensivel
+
+┌─[orbite]@[Navita]:~/docker-dca
+└──> $ microk8s kubectl apply -f configmap.yml 
+configmap/configmap-app1 created
+
+┌─[orbite]@[Navita]:~/docker-dca
+└──> $ microk8s kubectl get configmap
+NAME               DATA   AGE
+kube-root-ca.crt   1      5d19h
+configmap-app1     3      30s
+
+┌─[orbite]@[Navita]:~/docker-dca
+└──> $ microk8s kubectl describe configmap configmap-app1
+Name:         configmap-app1
+Namespace:    default
+Labels:       <none>
+Annotations:  <none>
+
+Data
+====
+initial_refresh_value:
+----
+4
+ui_properties_file_name:
+----
+user-interface.properties
+user-interface.properties:
+----
+color.good=green
+color.bad=red
+
+Events:  <none>
+
+┌─[orbite]@[Navita]:~/docker-dca
+└──> $ microk8s kubectl apply -f pod-configmap.yml 
+pod/app1 created
+
+# Executando container no Microk8s
+# Linkl de referencia: https://blog.macstadium.com/blog/how-to-k8s-exec-into-a-running-kubernetes-pod
+
+# Alpine se usa -- ash parecdido com bash
+
+┌─[orbite]@[Navita]:~/docker-dca
+└──> $ microk8s kubectl get pods
+NAME   READY   STATUS    RESTARTS   AGE
+app1   1/1     Running   0          2m24s
+
+┌─[orbite]@[Navita]:~/docker-dca
+└──> $ microk8s kubectl exec -it app1 -- ash
+/ # 
+
+
+┌─[orbite]@[Navita]:~/docker-dca
+└──> $ microk8s kubectl exec -it app1 -- ash
+/ # ls /etc/conf
+conf.d/   configs/
+/ # ls /etc/configs/
+initial_refresh_value      ui_properties_file_name    user-interface.properties
+/ #
+
+┌─[orbite]@[Navita]:~/docker-dca
+└──> $ microk8s kubectl apply -f pod-configmap.yml 
+/ # cat /etc/configs/initial_refresh_value
+/ # cat /etc/configs/ui_properties_file_name
+/ # cat /etc/configs/user-interface.properties
+color.good=green
+color.bad=red
+/ #
+
+┌─[orbite]@[Navita]:~/docker-dca
+└──> $ microk8s kubectl delete pod/app1
+pod "app1" deleted
+
+┌─[orbite]@[Navita]:~/docker-dca
+└──> $ microk8s kubectl apply -f secret.yml 
+secret/senha-mysql created
+
+┌─[orbite]@[Navita]:~/docker-dca
+└──> $ microk8s kubectl get secrets
+NAME                  TYPE                                  DATA   AGE
+default-token-dh9z4   kubernetes.io/service-account-token   3      5d19h
+istio.default         istio.io/key-and-cert                 3      5d19h
+senha-mysql           kubernetes.io/basic-auth              2      28s
+
+┌─[orbite]@[Navita]:~/docker-dca
+└──> $ microk8s kubectl describe secret senha-mysql
+Name:         senha-mysql
+Namespace:    default
+Labels:       <none>
+Annotations:  <none>
+
+Type:  kubernetes.io/basic-auth
+
+Data
+====
+password:  22 bytes
+username:  4 bytes
+
+┌─[orbite]@[Navita]:~/docker-dca
+└──> $ microk8s kubectl apply -f pod-secret.yml
+pod/mysql-db created
+
+┌─[orbite]@[Navita]:~/docker-dca
+└──> $ microk8s kubectl exec -it mysql-db -- mysql -u root -pcaiodelgadonew@youtube
+mysql: [Warning] Using a password on the command line interface can be insecure.
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 8
+Server version: 8.0.26 MySQL Community Server - GPL
+
+Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+
+Oracle is a registered trademark of Oracle Corporation and/or its
+affiliates. Other names may be trademarks of their respective
+owners.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+mysql> 
+
+mysql> show databases;
++--------------------+
+| Database           |
++--------------------+
+| information_schema |
+| mysql              |
+| performance_schema |
+| sys                |
++--------------------+
+4 rows in set (0.01 sec)
+
+mysql>
+
+mysql> exit
+Bye
+
+┌─[orbite]@[Navita]:~/docker-dca
+└──> $ microk8s kubectl describe pod mysql-db
+Name:         mysql-db
+Namespace:    default
+Priority:     0
+Node:         navita/192.168.1.104
+Start Time:   Wed, 22 Sep 2021 14:56:55 -0300
+Labels:       <none>
+Annotations:  cni.projectcalico.org/podIP: 10.1.41.165/32
+              cni.projectcalico.org/podIPs: 10.1.41.165/32
+Status:       Running
+IP:           10.1.41.165
+IPs:
+  IP:  10.1.41.165
+Containers:
+  mysql-db:
+    Container ID:   containerd://30ab8ae6c76d761decf0aa7db7c6d866a842eed6d9d293b8597a883b6a952b59
+    Image:          mysql
+    Image ID:       docker.io/library/mysql@sha256:99e0989e7e3797cfbdb8d51a19d32c8d286dd8862794d01a547651a896bcf00c
+    Port:           <none>
+    Host Port:      <none>
+    State:          Running
+      Started:      Wed, 22 Sep 2021 14:57:13 -0300
+    Ready:          True
+    Restart Count:  0
+    Environment:
+      MYSQL_ROOT_PASSWORD:  <set to the key 'password' in secret 'senha-mysql'>  Optional: false
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-2nkwv (ro)
+Conditions:
+  Type              Status
+  Initialized       True 
+  Ready             True 
+  ContainersReady   True 
+  PodScheduled      True 
+Volumes:
+  kube-api-access-2nkwv:
+    Type:                    Projected (a volume that contains injected data from multiple sources)
+    TokenExpirationSeconds:  3607
+    ConfigMapName:           kube-root-ca.crt
+    ConfigMapOptional:       <nil>
+    DownwardAPI:             true
+QoS Class:                   BestEffort
+Node-Selectors:              <none>
+Tolerations:                 node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                             node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+Events:
+  Type    Reason     Age    From               Message
+  ----    ------     ----   ----               -------
+  Normal  Scheduled  2m30s  default-scheduler  Successfully assigned default/mysql-db to navita
+  Normal  Pulling    2m29s  kubelet            Pulling image "mysql"
+  Normal  Pulled     2m13s  kubelet            Successfully pulled image "mysql" in 16.249068182s
+  Normal  Created    2m13s  kubelet            Created container mysql-db
+  Normal  Started    2m12s  kubelet            Started container mysql-db
+
+┌─[orbite]@[Navita]:~/docker-dca
+└──> $ microk8s kubectl delete pod mysql-db
+pod "mysql-db" deleted
+
+# Persistent Storage
+
+- PersistentVolume ou PV 
+- PersistentVolumeClain ou PVC
+
+ReadWriteOnce - RWD
+ReadOnlyMany - ROD 
+ReadWriteMany - RWX 
+ReadWriteOncePod - RWOP (Kubernetes 1.22+)
 
 
