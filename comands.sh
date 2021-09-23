@@ -7928,4 +7928,35 @@ ReadOnlyMany - ROD
 ReadWriteMany - RWX 
 ReadWriteOncePod - RWOP (Kubernetes 1.22+)
 
+# K8s dicas:
 
+ClusterIP (padrão) - Expõe o serviço sob um endereço IP interno no cluster. 
+Este tipo faz do serviço somente alcançável de dentro do cluster.
+
+NodePort - Expõe o serviço sob a mesma porta em cada nó selecionado no cluster usando NAT. 
+Faz o serviço acessível externamente ao cluster usando <NodeIP>:<NodePort>. Superconjunto de ClusterIP.
+
+LoadBalancer - Cria um balanceador de carga externo no provedor de nuvem atual (se suportado) e 
+assinala um endereço IP fixo e externo para o serviço. Superconjunto de NodePort.
+
+ExternalName - Expõe o serviço usando um nome arbitrário (especificado através de externalName na especificação spec) 
+retornando um registro de CNAME com o nome. Nenhum proxy é utilizado. Este tipo requer v1.7 ou mais recente de kube-dns.
+
+┌─[orbite]@[Navita]:~/docker-dca
+└──> $ microk8s kubectl get persistentvolumes
+NAME                                       CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS   CLAIM                               STORAGECLASS        REASON   AGE
+pvc-0456929b-f0a7-4524-8030-415047024397   20Gi       RWX            Delete           Bound    container-registry/registry-claim   microk8s-hostpath            6d21h
+
+# ou
+
+┌─[orbite]@[Navita]:~/docker-dca
+└──> $ microk8s kubectl get pv
+NAME                                       CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS   CLAIM                               STORAGECLASS        REASON   AGE
+pvc-0456929b-f0a7-4524-8030-415047024397   20Gi       RWX            Delete           Bound    container-registry/registry-claim   microk8s-hostpath            6d21h
+
+┌─[orbite]@[Navita]:~/docker-dca
+└──> $ microk8s kubectl get pvc
+No resources found in default namespace.
+┌─[orbite]@[Navita]:~/docker-dca
+└──> $ microk8s kubectl get persistentvolumeclains
+error: the server doesn't have a resource type "persistentvolumeclains"
